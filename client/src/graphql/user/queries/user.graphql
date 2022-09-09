@@ -1,0 +1,5 @@
+query User($getUserInput: GetUserInput) {
+  user(getUserInput: $getUserInput) {
+    ...RegularUser
+  }
+}

@@ -1,0 +1,9 @@
+query Posts($paginationPostsInput: PaginationPostsInput!) {
+  posts(paginationPostsInput: $paginationPostsInput) {
+    items {
+      ...RegularPost
+    }
+    totalCount
+    hasMore
+  }
+}

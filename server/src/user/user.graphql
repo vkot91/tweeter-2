@@ -1,0 +1,44 @@
+type User {
+  id: Int!
+  email: String!
+  password: String!
+  firstName: String!
+  secondName: String!
+  bio: String
+  avatar: String
+  username: String!
+  isEmailConfirmed: Boolean
+  posts: [Post!]
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+  firstName: String!
+  secondName: String!
+  username: String!
+}
+
+input UpdateUserInput {
+  id: Int!
+  password: String
+  firstName: String
+  secondName: String
+  username: String
+}
+
+input GetUserInput {
+  id: Int
+  username: String
+  email: String
+}
+
+type Query {
+  user(getUserInput: GetUserInput): User!
+  users: [User]!
+}
+
+type Mutation {
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  removeUser(id: Int!): User
+}

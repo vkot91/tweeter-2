@@ -1,0 +1,26 @@
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RestorePasswordInput {
+  email: String!
+  password: String!
+}
+
+type UserResponse {
+  token: String
+  user: User
+}
+
+type Query {
+  me: User!
+}
+
+type Mutation {
+  register(createUserInput: CreateUserInput!): User!
+  login(loginInput: LoginInput!): UserResponse!
+  forgotPassword(email: String!): Boolean
+  restorePassword(restorePasswordInput: RestorePasswordInput!): UserResponse!
+  confirm(token: String!): Boolean
+}

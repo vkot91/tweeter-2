@@ -1,0 +1,44 @@
+scalar Upload
+
+type Post {
+  id: Int!
+  description: String!
+  image: String
+  createdAt: String!
+  updatedAt: String
+  owner: User!
+}
+
+input CreatePostInput {
+  description: String!
+  file: Upload
+}
+
+input UpdatePostInput {
+  id: Int!
+  description: String
+  file: Upload
+}
+
+input PaginationPostsInput {
+  ownerId: Int!
+  take: Int = 3
+  activePage: Int = 1
+}
+
+type PaginatedPostsResponse {
+  items: [Post!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+type Query {
+  posts(paginationPostsInput: PaginationPostsInput): PaginatedPostsResponse!
+  post(id: Int!): Post
+}
+
+type Mutation {
+  createPost(createPostInput: CreatePostInput!): Post!
+  updatePost(updatePostInput: UpdatePostInput!): Post!
+  removePost(id: Int!): Boolean!
+}
