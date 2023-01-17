@@ -39,6 +39,7 @@ const button: ComponentStyleConfig = {
   baseStyle: ({ colorMode }: StyleFunctionProps) => ({
     _focus: { boxShadow: 'none' },
     color: colorMode === 'dark' ? colors.primaryFontColor.darkMode : colors.primaryFontColor.lightMode,
+    borderRadius: '10px',
   }),
   variants: {
     outline: {
@@ -73,19 +74,26 @@ const link: ComponentStyleConfig = {
 };
 
 const input: ComponentStyleConfig = {
+  variants: {
+    withBorderRadius: {
+      field: {
+        borderRadius: 'xl',
+      },
+    },
+  },
+  defaultProps: {
+    variant: 'withBorderRadius',
+  },
   baseStyle: {
     field: {
-      fontSize: 'md',
-      _autofill: {
-        border: '1px solid #E2E8F0',
-        textFillColor: '#718096',
-        boxShadow: '0 0 0px 1000px transparent inset',
-        transition: 'background-color 5000s ease-in-out 0s',
-      },
       _dark: {
+        bg: colors.bg.dark.secondary,
         _placeholder: {
-          color: 'gray.300',
+          color: 'gray.500',
         },
+      },
+      _light: {
+        bg: colors.bg.light.secondary,
       },
     },
   },
@@ -107,6 +115,12 @@ const text: ComponentStyleConfig = {
       color: colorMode === 'dark' ? colors.secondaryFontColor.darkMode : colors.secondaryFontColor.lightMode,
     }),
   },
+};
+
+const divider: ComponentStyleConfig = {
+  baseStyle: () => ({
+    borderColor: 'gray.300',
+  }),
 };
 
 export const theme = extendTheme({
@@ -135,8 +149,6 @@ export const theme = extendTheme({
     Link: link,
     Input: input,
     Avatar: avatar,
-    Box: {
-      bg: 'white',
-    },
+    Divider: divider,
   },
 });

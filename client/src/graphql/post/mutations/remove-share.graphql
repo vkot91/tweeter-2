@@ -1,0 +1,3 @@
+mutation RemoveShare($id: Int!) {
+  removeShare(id: $id)
+}

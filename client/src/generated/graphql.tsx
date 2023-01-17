@@ -17,6 +17,31 @@ export type Scalars = {
   Upload: any;
 };
 
+export enum ActionType {
+  All = 'all',
+  Friends = 'friends',
+  Owner = 'owner'
+}
+
+export type Comment = {
+  __typename?: 'Comment';
+  createdAt: Scalars['String'];
+  id: Scalars['Int'];
+  owner: User;
+  ownerId: Scalars['Int'];
+  text: Scalars['String'];
+  updatedAt?: Maybe<Scalars['String']>;
+};
+
+export type CreateCommentInput = {
+  postId: Scalars['Int'];
+  text: Scalars['String'];
+};
+
+export type CreateFriendshipInput = {
+  friend_id: Scalars['Int'];
+};
+
 export type CreatePostInput = {
   description: Scalars['String'];
   file?: InputMaybe<Scalars['Upload']>;
@@ -30,10 +55,37 @@ export type CreateUserInput = {
   username: Scalars['String'];
 };
 
+export type Friendship = {
+  __typename?: 'Friendship';
+  attemptsCount: Scalars['Int'];
+  createdAt: Scalars['String'];
+  friend: User;
+  friend_id: Scalars['Int'];
+  id: Scalars['Int'];
+  requestCreator: Scalars['Boolean'];
+  status: Status;
+  updatedAt: Scalars['String'];
+};
+
+export type FriendshipMutatedPayload = {
+  __typename?: 'FriendshipMutatedPayload';
+  mutation: MutationType;
+  node: Friendship;
+};
+
 export type GetUserInput = {
   email?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['Int']>;
   username?: InputMaybe<Scalars['String']>;
+};
+
+export type Like = {
+  __typename?: 'Like';
+  createdAt: Scalars['String'];
+  id: Scalars['Int'];
+  owner: User;
+  ownerId: Scalars['Int'];
+  updatedAt?: Maybe<Scalars['String']>;
 };
 
 export type LoginInput = {
@@ -44,14 +96,24 @@ export type LoginInput = {
 export type Mutation = {
   __typename?: 'Mutation';
   confirm?: Maybe<Scalars['Boolean']>;
+  createComment: Comment;
+  createFriendship: Friendship;
+  createLike: Like;
   createPost: Post;
+  createShare: Share;
   forgotPassword?: Maybe<Scalars['Boolean']>;
   login: UserResponse;
   register: User;
+  removeComment?: Maybe<Scalars['Boolean']>;
+  removeFriendship: Friendship;
+  removeLike: Scalars['Boolean'];
   removePost: Scalars['Boolean'];
+  removeShare: Scalars['Boolean'];
   removeUser?: Maybe<User>;
   restorePassword: UserResponse;
+  updateCreator: Friendship;
   updatePost: Post;
+  updateStatus: Scalars['Boolean'];
   updateUser: User;
 };
 
@@ -61,8 +123,28 @@ export type MutationConfirmArgs = {
 };
 
 
+export type MutationCreateCommentArgs = {
+  createCommentInput: CreateCommentInput;
+};
+
+
+export type MutationCreateFriendshipArgs = {
+  createFriendshipInput: CreateFriendshipInput;
+};
+
+
+export type MutationCreateLikeArgs = {
+  postId: Scalars['Int'];
+};
+
+
 export type MutationCreatePostArgs = {
   createPostInput: CreatePostInput;
+};
+
+
+export type MutationCreateShareArgs = {
+  postId: Scalars['Int'];
 };
 
 
@@ -81,7 +163,27 @@ export type MutationRegisterArgs = {
 };
 
 
+export type MutationRemoveCommentArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type MutationRemoveFriendshipArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type MutationRemoveLikeArgs = {
+  id: Scalars['Int'];
+};
+
+
 export type MutationRemovePostArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type MutationRemoveShareArgs = {
   id: Scalars['Int'];
 };
 
@@ -96,14 +198,30 @@ export type MutationRestorePasswordArgs = {
 };
 
 
+export type MutationUpdateCreatorArgs = {
+  id: Scalars['Int'];
+};
+
+
 export type MutationUpdatePostArgs = {
   updatePostInput: UpdatePostInput;
+};
+
+
+export type MutationUpdateStatusArgs = {
+  updateStatusInput: UpdateStatusInput;
 };
 
 
 export type MutationUpdateUserArgs = {
   updateUserInput: UpdateUserInput;
 };
+
+export enum MutationType {
+  Created = 'CREATED',
+  Deleted = 'DELETED',
+  Updated = 'UPDATED'
+}
 
 export type PaginatedPostsResponse = {
   __typename?: 'PaginatedPostsResponse';
@@ -113,28 +231,44 @@ export type PaginatedPostsResponse = {
 };
 
 export type PaginationPostsInput = {
+  action?: InputMaybe<ActionType>;
   activePage?: InputMaybe<Scalars['Int']>;
   ownerId: Scalars['Int'];
   take?: InputMaybe<Scalars['Int']>;
 };
 
+export type Payload = {
+  __typename?: 'Payload';
+  user?: Maybe<User>;
+};
+
 export type Post = {
   __typename?: 'Post';
+  comments?: Maybe<Array<Comment>>;
   createdAt: Scalars['String'];
   description: Scalars['String'];
   id: Scalars['Int'];
   image?: Maybe<Scalars['String']>;
+  likes?: Maybe<Array<Like>>;
   owner: User;
+  shares?: Maybe<Array<Share>>;
   updatedAt?: Maybe<Scalars['String']>;
 };
 
 export type Query = {
   __typename?: 'Query';
+  friendsRequests: Array<Maybe<Friendship>>;
+  friendships?: Maybe<Array<Maybe<Friendship>>>;
   me: User;
   post?: Maybe<Post>;
   posts: PaginatedPostsResponse;
   user: User;
   users: Array<Maybe<User>>;
+};
+
+
+export type QueryFriendshipsArgs = {
+  userId: Scalars['Int'];
 };
 
 
@@ -157,16 +291,64 @@ export type RestorePasswordInput = {
   password: Scalars['String'];
 };
 
+export type Share = {
+  __typename?: 'Share';
+  createdAt: Scalars['String'];
+  id: Scalars['Int'];
+  owner: User;
+  ownerId: Scalars['Int'];
+  updatedAt?: Maybe<Scalars['String']>;
+};
+
+export enum Status {
+  Blocked = 'BLOCKED',
+  Confirmed = 'CONFIRMED',
+  Pending = 'PENDING',
+  Rejected = 'REJECTED'
+}
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  friendshipMutated?: Maybe<FriendshipMutatedPayload>;
+  lastSeenUpdated?: Maybe<Payload>;
+};
+
+
+export type SubscriptionFriendshipMutatedArgs = {
+  userId: Scalars['Int'];
+};
+
+
+export type SubscriptionLastSeenUpdatedArgs = {
+  userId: Scalars['Int'];
+};
+
+export type UpdateCreatorInput = {
+  friend_id: Scalars['Int'];
+  id: Scalars['Int'];
+};
+
 export type UpdatePostInput = {
   description?: InputMaybe<Scalars['String']>;
   file?: InputMaybe<Scalars['Upload']>;
   id: Scalars['Int'];
 };
 
+export type UpdateStatusInput = {
+  id: Scalars['Int'];
+  status?: InputMaybe<Status>;
+};
+
 export type UpdateUserInput = {
+  avatar?: InputMaybe<Scalars['Upload']>;
+  bio?: InputMaybe<Scalars['String']>;
+  email?: InputMaybe<Scalars['String']>;
   firstName?: InputMaybe<Scalars['String']>;
   id: Scalars['Int'];
+  lastSeen?: InputMaybe<Scalars['String']>;
+  location?: InputMaybe<Scalars['String']>;
   password?: InputMaybe<Scalars['String']>;
+  phone?: InputMaybe<Scalars['String']>;
   secondName?: InputMaybe<Scalars['String']>;
   username?: InputMaybe<Scalars['String']>;
 };
@@ -177,9 +359,13 @@ export type User = {
   bio?: Maybe<Scalars['String']>;
   email: Scalars['String'];
   firstName: Scalars['String'];
+  friends?: Maybe<Array<Friendship>>;
   id: Scalars['Int'];
   isEmailConfirmed?: Maybe<Scalars['Boolean']>;
+  lastSeen: Scalars['String'];
+  location?: Maybe<Scalars['String']>;
   password: Scalars['String'];
+  phone?: Maybe<Scalars['String']>;
   posts?: Maybe<Array<Post>>;
   secondName: Scalars['String'];
   username: Scalars['String'];
@@ -210,37 +396,80 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } | null } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } };
 
 export type RegisterMutationVariables = Exact<{
   createUserInput: CreateUserInput;
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
 
 export type RestorePasswordMutationVariables = Exact<{
   restorePasswordInput: RestorePasswordInput;
 }>;
 
 
-export type RestorePasswordMutation = { __typename?: 'Mutation', restorePassword: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } | null } };
+export type RestorePasswordMutation = { __typename?: 'Mutation', restorePassword: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
 
-export type RegularPostFragment = { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } };
+export type RegularCommentFragment = { __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } };
 
-export type RegularUserFragment = { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null };
+export type RegularFriendshipFragment = { __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } };
+
+export type RegularLikeFragment = { __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number };
+
+export type RegularPostFragment = { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null };
+
+export type RegularShareFragment = { __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number };
+
+export type RegularUserFragment = { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string };
+
+export type CreateCommentMutationVariables = Exact<{
+  createCommentInput: CreateCommentInput;
+}>;
+
+
+export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } } };
+
+export type CreateLikeMutationVariables = Exact<{
+  postId: Scalars['Int'];
+}>;
+
+
+export type CreateLikeMutation = { __typename?: 'Mutation', createLike: { __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number } };
 
 export type CreatePostMutationVariables = Exact<{
   createPostInput: CreatePostInput;
 }>;
 
 
-export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } } };
+export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null } };
+
+export type CreateShareMutationVariables = Exact<{
+  postId: Scalars['Int'];
+}>;
+
+
+export type CreateShareMutation = { __typename?: 'Mutation', createShare: { __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number } };
+
+export type RemoveCommentMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type RemoveCommentMutation = { __typename?: 'Mutation', removeComment?: boolean | null };
+
+export type RemoveLikeMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type RemoveLikeMutation = { __typename?: 'Mutation', removeLike: boolean };
 
 export type RemovePostMutationVariables = Exact<{
   id: Scalars['Int'];
@@ -249,38 +478,160 @@ export type RemovePostMutationVariables = Exact<{
 
 export type RemovePostMutation = { __typename?: 'Mutation', removePost: boolean };
 
+export type RemoveShareMutationVariables = Exact<{
+  id: Scalars['Int'];
+}>;
+
+
+export type RemoveShareMutation = { __typename?: 'Mutation', removeShare: boolean };
+
 export type UpdatePostMutationVariables = Exact<{
   updatePostInput: UpdatePostInput;
 }>;
 
 
-export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } } };
+export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null } };
 
 export type PostsQueryVariables = Exact<{
   paginationPostsInput: PaginationPostsInput;
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPostsResponse', totalCount: number, hasMore: boolean, items: Array<{ __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPostsResponse', totalCount: number, hasMore: boolean, items: Array<{ __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null }> } };
+
+export type CreateFriendshipMutationVariables = Exact<{
+  createFriendshipInput: CreateFriendshipInput;
+}>;
+
+
+export type CreateFriendshipMutation = { __typename?: 'Mutation', createFriendship: { __typename?: 'Friendship', id: number, friend: { __typename?: 'User', id: number } } };
+
+export type RemoveFriendshipMutationVariables = Exact<{
+  removeFriendshipId: Scalars['Int'];
+}>;
+
+
+export type RemoveFriendshipMutation = { __typename?: 'Mutation', removeFriendship: { __typename?: 'Friendship', id: number } };
+
+export type UpdateCreatorMutationVariables = Exact<{
+  friendshipId: Scalars['Int'];
+}>;
+
+
+export type UpdateCreatorMutation = { __typename?: 'Mutation', updateCreator: { __typename?: 'Friendship', id: number, friend: { __typename?: 'User', id: number } } };
+
+export type UpdateStatusMutationVariables = Exact<{
+  updateStatusInput: UpdateStatusInput;
+}>;
+
+
+export type UpdateStatusMutation = { __typename?: 'Mutation', updateStatus: boolean };
+
+export type UpdateUserMutationVariables = Exact<{
+  updateUserInput: UpdateUserInput;
+}>;
+
+
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
+
+export type FriendsRequestsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FriendsRequestsQuery = { __typename?: 'Query', friendsRequests: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } | null> };
+
+export type FriendshipsQueryVariables = Exact<{
+  userId: Scalars['Int'];
+}>;
+
+
+export type FriendshipsQuery = { __typename?: 'Query', friendships?: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } | null> | null };
 
 export type UserQueryVariables = Exact<{
   getUserInput?: InputMaybe<GetUserInput>;
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number, username: string, password: string, email: string, firstName: string, secondName: string, bio?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null } };
+export type UserQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
 
+export type FriendshipMutatedSubscriptionVariables = Exact<{
+  userId: Scalars['Int'];
+}>;
+
+
+export type FriendshipMutatedSubscription = { __typename?: 'Subscription', friendshipMutated?: { __typename?: 'FriendshipMutatedPayload', mutation: MutationType, node: { __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } } | null };
+
+export type LastSeenUpdatedSubscriptionVariables = Exact<{
+  userId: Scalars['Int'];
+}>;
+
+
+export type LastSeenUpdatedSubscription = { __typename?: 'Subscription', lastSeenUpdated?: { __typename?: 'Payload', user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } | null };
+
+export const RegularFriendshipFragmentDoc = gql`
+    fragment RegularFriendship on Friendship {
+  id
+  friend {
+    id
+    firstName
+    secondName
+    avatar
+    username
+    email
+    lastSeen
+  }
+  friend_id
+  status
+  createdAt
+  updatedAt
+  attemptsCount
+  requestCreator
+}
+    `;
 export const RegularUserFragmentDoc = gql`
     fragment RegularUser on User {
   id
-  username
-  password
-  email
   firstName
   secondName
+  username
   bio
+  location
+  email
+  bio
+  phone
+  password
   avatar
   isEmailConfirmed
+  lastSeen
+}
+    `;
+export const RegularLikeFragmentDoc = gql`
+    fragment RegularLike on Like {
+  id
+  createdAt
+  updatedAt
+  ownerId
+}
+    `;
+export const RegularShareFragmentDoc = gql`
+    fragment RegularShare on Share {
+  id
+  createdAt
+  updatedAt
+  ownerId
+}
+    `;
+export const RegularCommentFragmentDoc = gql`
+    fragment RegularComment on Comment {
+  id
+  text
+  createdAt
+  ownerId
+  owner {
+    firstName
+    secondName
+    avatar
+    id
+  }
 }
     `;
 export const RegularPostFragmentDoc = gql`
@@ -293,8 +644,20 @@ export const RegularPostFragmentDoc = gql`
   owner {
     ...RegularUser
   }
+  likes {
+    ...RegularLike
+  }
+  shares {
+    ...RegularShare
+  }
+  comments {
+    ...RegularComment
+  }
 }
-    ${RegularUserFragmentDoc}`;
+    ${RegularUserFragmentDoc}
+${RegularLikeFragmentDoc}
+${RegularShareFragmentDoc}
+${RegularCommentFragmentDoc}`;
 export const ConfirmDocument = gql`
     mutation Confirm($token: String!) {
   confirm(token: $token)
@@ -496,6 +859,72 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const CreateCommentDocument = gql`
+    mutation CreateComment($createCommentInput: CreateCommentInput!) {
+  createComment(createCommentInput: $createCommentInput) {
+    ...RegularComment
+  }
+}
+    ${RegularCommentFragmentDoc}`;
+export type CreateCommentMutationFn = Apollo.MutationFunction<CreateCommentMutation, CreateCommentMutationVariables>;
+
+/**
+ * __useCreateCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCommentMutation, { data, loading, error }] = useCreateCommentMutation({
+ *   variables: {
+ *      createCommentInput: // value for 'createCommentInput'
+ *   },
+ * });
+ */
+export function useCreateCommentMutation(baseOptions?: Apollo.MutationHookOptions<CreateCommentMutation, CreateCommentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCommentMutation, CreateCommentMutationVariables>(CreateCommentDocument, options);
+      }
+export type CreateCommentMutationHookResult = ReturnType<typeof useCreateCommentMutation>;
+export type CreateCommentMutationResult = Apollo.MutationResult<CreateCommentMutation>;
+export type CreateCommentMutationOptions = Apollo.BaseMutationOptions<CreateCommentMutation, CreateCommentMutationVariables>;
+export const CreateLikeDocument = gql`
+    mutation CreateLike($postId: Int!) {
+  createLike(postId: $postId) {
+    ...RegularLike
+  }
+}
+    ${RegularLikeFragmentDoc}`;
+export type CreateLikeMutationFn = Apollo.MutationFunction<CreateLikeMutation, CreateLikeMutationVariables>;
+
+/**
+ * __useCreateLikeMutation__
+ *
+ * To run a mutation, you first call `useCreateLikeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateLikeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createLikeMutation, { data, loading, error }] = useCreateLikeMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *   },
+ * });
+ */
+export function useCreateLikeMutation(baseOptions?: Apollo.MutationHookOptions<CreateLikeMutation, CreateLikeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateLikeMutation, CreateLikeMutationVariables>(CreateLikeDocument, options);
+      }
+export type CreateLikeMutationHookResult = ReturnType<typeof useCreateLikeMutation>;
+export type CreateLikeMutationResult = Apollo.MutationResult<CreateLikeMutation>;
+export type CreateLikeMutationOptions = Apollo.BaseMutationOptions<CreateLikeMutation, CreateLikeMutationVariables>;
 export const CreatePostDocument = gql`
     mutation CreatePost($createPostInput: CreatePostInput!) {
   createPost(createPostInput: $createPostInput) {
@@ -529,6 +958,101 @@ export function useCreatePostMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreatePostMutationHookResult = ReturnType<typeof useCreatePostMutation>;
 export type CreatePostMutationResult = Apollo.MutationResult<CreatePostMutation>;
 export type CreatePostMutationOptions = Apollo.BaseMutationOptions<CreatePostMutation, CreatePostMutationVariables>;
+export const CreateShareDocument = gql`
+    mutation CreateShare($postId: Int!) {
+  createShare(postId: $postId) {
+    ...RegularShare
+  }
+}
+    ${RegularShareFragmentDoc}`;
+export type CreateShareMutationFn = Apollo.MutationFunction<CreateShareMutation, CreateShareMutationVariables>;
+
+/**
+ * __useCreateShareMutation__
+ *
+ * To run a mutation, you first call `useCreateShareMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateShareMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createShareMutation, { data, loading, error }] = useCreateShareMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *   },
+ * });
+ */
+export function useCreateShareMutation(baseOptions?: Apollo.MutationHookOptions<CreateShareMutation, CreateShareMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateShareMutation, CreateShareMutationVariables>(CreateShareDocument, options);
+      }
+export type CreateShareMutationHookResult = ReturnType<typeof useCreateShareMutation>;
+export type CreateShareMutationResult = Apollo.MutationResult<CreateShareMutation>;
+export type CreateShareMutationOptions = Apollo.BaseMutationOptions<CreateShareMutation, CreateShareMutationVariables>;
+export const RemoveCommentDocument = gql`
+    mutation RemoveComment($id: Int!) {
+  removeComment(id: $id)
+}
+    `;
+export type RemoveCommentMutationFn = Apollo.MutationFunction<RemoveCommentMutation, RemoveCommentMutationVariables>;
+
+/**
+ * __useRemoveCommentMutation__
+ *
+ * To run a mutation, you first call `useRemoveCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeCommentMutation, { data, loading, error }] = useRemoveCommentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveCommentMutation(baseOptions?: Apollo.MutationHookOptions<RemoveCommentMutation, RemoveCommentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveCommentMutation, RemoveCommentMutationVariables>(RemoveCommentDocument, options);
+      }
+export type RemoveCommentMutationHookResult = ReturnType<typeof useRemoveCommentMutation>;
+export type RemoveCommentMutationResult = Apollo.MutationResult<RemoveCommentMutation>;
+export type RemoveCommentMutationOptions = Apollo.BaseMutationOptions<RemoveCommentMutation, RemoveCommentMutationVariables>;
+export const RemoveLikeDocument = gql`
+    mutation RemoveLike($id: Int!) {
+  removeLike(id: $id)
+}
+    `;
+export type RemoveLikeMutationFn = Apollo.MutationFunction<RemoveLikeMutation, RemoveLikeMutationVariables>;
+
+/**
+ * __useRemoveLikeMutation__
+ *
+ * To run a mutation, you first call `useRemoveLikeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveLikeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeLikeMutation, { data, loading, error }] = useRemoveLikeMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveLikeMutation(baseOptions?: Apollo.MutationHookOptions<RemoveLikeMutation, RemoveLikeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveLikeMutation, RemoveLikeMutationVariables>(RemoveLikeDocument, options);
+      }
+export type RemoveLikeMutationHookResult = ReturnType<typeof useRemoveLikeMutation>;
+export type RemoveLikeMutationResult = Apollo.MutationResult<RemoveLikeMutation>;
+export type RemoveLikeMutationOptions = Apollo.BaseMutationOptions<RemoveLikeMutation, RemoveLikeMutationVariables>;
 export const RemovePostDocument = gql`
     mutation RemovePost($id: Int!) {
   removePost(id: $id)
@@ -560,6 +1084,37 @@ export function useRemovePostMutation(baseOptions?: Apollo.MutationHookOptions<R
 export type RemovePostMutationHookResult = ReturnType<typeof useRemovePostMutation>;
 export type RemovePostMutationResult = Apollo.MutationResult<RemovePostMutation>;
 export type RemovePostMutationOptions = Apollo.BaseMutationOptions<RemovePostMutation, RemovePostMutationVariables>;
+export const RemoveShareDocument = gql`
+    mutation RemoveShare($id: Int!) {
+  removeShare(id: $id)
+}
+    `;
+export type RemoveShareMutationFn = Apollo.MutationFunction<RemoveShareMutation, RemoveShareMutationVariables>;
+
+/**
+ * __useRemoveShareMutation__
+ *
+ * To run a mutation, you first call `useRemoveShareMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveShareMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeShareMutation, { data, loading, error }] = useRemoveShareMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveShareMutation(baseOptions?: Apollo.MutationHookOptions<RemoveShareMutation, RemoveShareMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveShareMutation, RemoveShareMutationVariables>(RemoveShareDocument, options);
+      }
+export type RemoveShareMutationHookResult = ReturnType<typeof useRemoveShareMutation>;
+export type RemoveShareMutationResult = Apollo.MutationResult<RemoveShareMutation>;
+export type RemoveShareMutationOptions = Apollo.BaseMutationOptions<RemoveShareMutation, RemoveShareMutationVariables>;
 export const UpdatePostDocument = gql`
     mutation UpdatePost($updatePostInput: UpdatePostInput!) {
   updatePost(updatePostInput: $updatePostInput) {
@@ -632,6 +1187,244 @@ export function usePostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Post
 export type PostsQueryHookResult = ReturnType<typeof usePostsQuery>;
 export type PostsLazyQueryHookResult = ReturnType<typeof usePostsLazyQuery>;
 export type PostsQueryResult = Apollo.QueryResult<PostsQuery, PostsQueryVariables>;
+export const CreateFriendshipDocument = gql`
+    mutation CreateFriendship($createFriendshipInput: CreateFriendshipInput!) {
+  createFriendship(createFriendshipInput: $createFriendshipInput) {
+    id
+    friend {
+      id
+    }
+  }
+}
+    `;
+export type CreateFriendshipMutationFn = Apollo.MutationFunction<CreateFriendshipMutation, CreateFriendshipMutationVariables>;
+
+/**
+ * __useCreateFriendshipMutation__
+ *
+ * To run a mutation, you first call `useCreateFriendshipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateFriendshipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createFriendshipMutation, { data, loading, error }] = useCreateFriendshipMutation({
+ *   variables: {
+ *      createFriendshipInput: // value for 'createFriendshipInput'
+ *   },
+ * });
+ */
+export function useCreateFriendshipMutation(baseOptions?: Apollo.MutationHookOptions<CreateFriendshipMutation, CreateFriendshipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateFriendshipMutation, CreateFriendshipMutationVariables>(CreateFriendshipDocument, options);
+      }
+export type CreateFriendshipMutationHookResult = ReturnType<typeof useCreateFriendshipMutation>;
+export type CreateFriendshipMutationResult = Apollo.MutationResult<CreateFriendshipMutation>;
+export type CreateFriendshipMutationOptions = Apollo.BaseMutationOptions<CreateFriendshipMutation, CreateFriendshipMutationVariables>;
+export const RemoveFriendshipDocument = gql`
+    mutation RemoveFriendship($removeFriendshipId: Int!) {
+  removeFriendship(id: $removeFriendshipId) {
+    id
+  }
+}
+    `;
+export type RemoveFriendshipMutationFn = Apollo.MutationFunction<RemoveFriendshipMutation, RemoveFriendshipMutationVariables>;
+
+/**
+ * __useRemoveFriendshipMutation__
+ *
+ * To run a mutation, you first call `useRemoveFriendshipMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveFriendshipMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeFriendshipMutation, { data, loading, error }] = useRemoveFriendshipMutation({
+ *   variables: {
+ *      removeFriendshipId: // value for 'removeFriendshipId'
+ *   },
+ * });
+ */
+export function useRemoveFriendshipMutation(baseOptions?: Apollo.MutationHookOptions<RemoveFriendshipMutation, RemoveFriendshipMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveFriendshipMutation, RemoveFriendshipMutationVariables>(RemoveFriendshipDocument, options);
+      }
+export type RemoveFriendshipMutationHookResult = ReturnType<typeof useRemoveFriendshipMutation>;
+export type RemoveFriendshipMutationResult = Apollo.MutationResult<RemoveFriendshipMutation>;
+export type RemoveFriendshipMutationOptions = Apollo.BaseMutationOptions<RemoveFriendshipMutation, RemoveFriendshipMutationVariables>;
+export const UpdateCreatorDocument = gql`
+    mutation updateCreator($friendshipId: Int!) {
+  updateCreator(id: $friendshipId) {
+    id
+    friend {
+      id
+    }
+  }
+}
+    `;
+export type UpdateCreatorMutationFn = Apollo.MutationFunction<UpdateCreatorMutation, UpdateCreatorMutationVariables>;
+
+/**
+ * __useUpdateCreatorMutation__
+ *
+ * To run a mutation, you first call `useUpdateCreatorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateCreatorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateCreatorMutation, { data, loading, error }] = useUpdateCreatorMutation({
+ *   variables: {
+ *      friendshipId: // value for 'friendshipId'
+ *   },
+ * });
+ */
+export function useUpdateCreatorMutation(baseOptions?: Apollo.MutationHookOptions<UpdateCreatorMutation, UpdateCreatorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateCreatorMutation, UpdateCreatorMutationVariables>(UpdateCreatorDocument, options);
+      }
+export type UpdateCreatorMutationHookResult = ReturnType<typeof useUpdateCreatorMutation>;
+export type UpdateCreatorMutationResult = Apollo.MutationResult<UpdateCreatorMutation>;
+export type UpdateCreatorMutationOptions = Apollo.BaseMutationOptions<UpdateCreatorMutation, UpdateCreatorMutationVariables>;
+export const UpdateStatusDocument = gql`
+    mutation UpdateStatus($updateStatusInput: UpdateStatusInput!) {
+  updateStatus(updateStatusInput: $updateStatusInput)
+}
+    `;
+export type UpdateStatusMutationFn = Apollo.MutationFunction<UpdateStatusMutation, UpdateStatusMutationVariables>;
+
+/**
+ * __useUpdateStatusMutation__
+ *
+ * To run a mutation, you first call `useUpdateStatusMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateStatusMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateStatusMutation, { data, loading, error }] = useUpdateStatusMutation({
+ *   variables: {
+ *      updateStatusInput: // value for 'updateStatusInput'
+ *   },
+ * });
+ */
+export function useUpdateStatusMutation(baseOptions?: Apollo.MutationHookOptions<UpdateStatusMutation, UpdateStatusMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateStatusMutation, UpdateStatusMutationVariables>(UpdateStatusDocument, options);
+      }
+export type UpdateStatusMutationHookResult = ReturnType<typeof useUpdateStatusMutation>;
+export type UpdateStatusMutationResult = Apollo.MutationResult<UpdateStatusMutation>;
+export type UpdateStatusMutationOptions = Apollo.BaseMutationOptions<UpdateStatusMutation, UpdateStatusMutationVariables>;
+export const UpdateUserDocument = gql`
+    mutation UpdateUser($updateUserInput: UpdateUserInput!) {
+  updateUser(updateUserInput: $updateUserInput) {
+    ...RegularUser
+  }
+}
+    ${RegularUserFragmentDoc}`;
+export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
+
+/**
+ * __useUpdateUserMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserMutation, { data, loading, error }] = useUpdateUserMutation({
+ *   variables: {
+ *      updateUserInput: // value for 'updateUserInput'
+ *   },
+ * });
+ */
+export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserMutation, UpdateUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument, options);
+      }
+export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
+export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
+export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const FriendsRequestsDocument = gql`
+    query FriendsRequests {
+  friendsRequests {
+    ...RegularFriendship
+  }
+}
+    ${RegularFriendshipFragmentDoc}`;
+
+/**
+ * __useFriendsRequestsQuery__
+ *
+ * To run a query within a React component, call `useFriendsRequestsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFriendsRequestsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFriendsRequestsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useFriendsRequestsQuery(baseOptions?: Apollo.QueryHookOptions<FriendsRequestsQuery, FriendsRequestsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FriendsRequestsQuery, FriendsRequestsQueryVariables>(FriendsRequestsDocument, options);
+      }
+export function useFriendsRequestsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FriendsRequestsQuery, FriendsRequestsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FriendsRequestsQuery, FriendsRequestsQueryVariables>(FriendsRequestsDocument, options);
+        }
+export type FriendsRequestsQueryHookResult = ReturnType<typeof useFriendsRequestsQuery>;
+export type FriendsRequestsLazyQueryHookResult = ReturnType<typeof useFriendsRequestsLazyQuery>;
+export type FriendsRequestsQueryResult = Apollo.QueryResult<FriendsRequestsQuery, FriendsRequestsQueryVariables>;
+export const FriendshipsDocument = gql`
+    query Friendships($userId: Int!) {
+  friendships(userId: $userId) {
+    ...RegularFriendship
+  }
+}
+    ${RegularFriendshipFragmentDoc}`;
+
+/**
+ * __useFriendshipsQuery__
+ *
+ * To run a query within a React component, call `useFriendshipsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFriendshipsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFriendshipsQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useFriendshipsQuery(baseOptions: Apollo.QueryHookOptions<FriendshipsQuery, FriendshipsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FriendshipsQuery, FriendshipsQueryVariables>(FriendshipsDocument, options);
+      }
+export function useFriendshipsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FriendshipsQuery, FriendshipsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FriendshipsQuery, FriendshipsQueryVariables>(FriendshipsDocument, options);
+        }
+export type FriendshipsQueryHookResult = ReturnType<typeof useFriendshipsQuery>;
+export type FriendshipsLazyQueryHookResult = ReturnType<typeof useFriendshipsLazyQuery>;
+export type FriendshipsQueryResult = Apollo.QueryResult<FriendshipsQuery, FriendshipsQueryVariables>;
 export const UserDocument = gql`
     query User($getUserInput: GetUserInput) {
   user(getUserInput: $getUserInput) {
@@ -667,17 +1460,125 @@ export function useUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserQ
 export type UserQueryHookResult = ReturnType<typeof useUserQuery>;
 export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
 export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
-export type MutationKeySpecifier = ('confirm' | 'createPost' | 'forgotPassword' | 'login' | 'register' | 'removePost' | 'removeUser' | 'restorePassword' | 'updatePost' | 'updateUser' | MutationKeySpecifier)[];
+export const FriendshipMutatedDocument = gql`
+    subscription FriendshipMutated($userId: Int!) {
+  friendshipMutated(userId: $userId) {
+    mutation
+    node {
+      ...RegularFriendship
+    }
+  }
+}
+    ${RegularFriendshipFragmentDoc}`;
+
+/**
+ * __useFriendshipMutatedSubscription__
+ *
+ * To run a query within a React component, call `useFriendshipMutatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useFriendshipMutatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFriendshipMutatedSubscription({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useFriendshipMutatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<FriendshipMutatedSubscription, FriendshipMutatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<FriendshipMutatedSubscription, FriendshipMutatedSubscriptionVariables>(FriendshipMutatedDocument, options);
+      }
+export type FriendshipMutatedSubscriptionHookResult = ReturnType<typeof useFriendshipMutatedSubscription>;
+export type FriendshipMutatedSubscriptionResult = Apollo.SubscriptionResult<FriendshipMutatedSubscription>;
+export const LastSeenUpdatedDocument = gql`
+    subscription LastSeenUpdated($userId: Int!) {
+  lastSeenUpdated(userId: $userId) {
+    user {
+      ...RegularUser
+    }
+  }
+}
+    ${RegularUserFragmentDoc}`;
+
+/**
+ * __useLastSeenUpdatedSubscription__
+ *
+ * To run a query within a React component, call `useLastSeenUpdatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLastSeenUpdatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLastSeenUpdatedSubscription({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useLastSeenUpdatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<LastSeenUpdatedSubscription, LastSeenUpdatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LastSeenUpdatedSubscription, LastSeenUpdatedSubscriptionVariables>(LastSeenUpdatedDocument, options);
+      }
+export type LastSeenUpdatedSubscriptionHookResult = ReturnType<typeof useLastSeenUpdatedSubscription>;
+export type LastSeenUpdatedSubscriptionResult = Apollo.SubscriptionResult<LastSeenUpdatedSubscription>;
+export type CommentKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'text' | 'updatedAt' | CommentKeySpecifier)[];
+export type CommentFieldPolicy = {
+	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	owner?: FieldPolicy<any> | FieldReadFunction<any>,
+	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	text?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type FriendshipKeySpecifier = ('attemptsCount' | 'createdAt' | 'friend' | 'friend_id' | 'id' | 'requestCreator' | 'status' | 'updatedAt' | FriendshipKeySpecifier)[];
+export type FriendshipFieldPolicy = {
+	attemptsCount?: FieldPolicy<any> | FieldReadFunction<any>,
+	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	friend?: FieldPolicy<any> | FieldReadFunction<any>,
+	friend_id?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	requestCreator?: FieldPolicy<any> | FieldReadFunction<any>,
+	status?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type FriendshipMutatedPayloadKeySpecifier = ('mutation' | 'node' | FriendshipMutatedPayloadKeySpecifier)[];
+export type FriendshipMutatedPayloadFieldPolicy = {
+	mutation?: FieldPolicy<any> | FieldReadFunction<any>,
+	node?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type LikeKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'updatedAt' | LikeKeySpecifier)[];
+export type LikeFieldPolicy = {
+	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	owner?: FieldPolicy<any> | FieldReadFunction<any>,
+	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type MutationKeySpecifier = ('confirm' | 'createComment' | 'createFriendship' | 'createLike' | 'createPost' | 'createShare' | 'forgotPassword' | 'login' | 'register' | 'removeComment' | 'removeFriendship' | 'removeLike' | 'removePost' | 'removeShare' | 'removeUser' | 'restorePassword' | 'updateCreator' | 'updatePost' | 'updateStatus' | 'updateUser' | MutationKeySpecifier)[];
 export type MutationFieldPolicy = {
 	confirm?: FieldPolicy<any> | FieldReadFunction<any>,
+	createComment?: FieldPolicy<any> | FieldReadFunction<any>,
+	createFriendship?: FieldPolicy<any> | FieldReadFunction<any>,
+	createLike?: FieldPolicy<any> | FieldReadFunction<any>,
 	createPost?: FieldPolicy<any> | FieldReadFunction<any>,
+	createShare?: FieldPolicy<any> | FieldReadFunction<any>,
 	forgotPassword?: FieldPolicy<any> | FieldReadFunction<any>,
 	login?: FieldPolicy<any> | FieldReadFunction<any>,
 	register?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeComment?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeFriendship?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeLike?: FieldPolicy<any> | FieldReadFunction<any>,
 	removePost?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeShare?: FieldPolicy<any> | FieldReadFunction<any>,
 	removeUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	restorePassword?: FieldPolicy<any> | FieldReadFunction<any>,
+	updateCreator?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatePost?: FieldPolicy<any> | FieldReadFunction<any>,
+	updateStatus?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type PaginatedPostsResponseKeySpecifier = ('hasMore' | 'items' | 'totalCount' | PaginatedPostsResponseKeySpecifier)[];
@@ -686,32 +1587,58 @@ export type PaginatedPostsResponseFieldPolicy = {
 	items?: FieldPolicy<any> | FieldReadFunction<any>,
 	totalCount?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type PostKeySpecifier = ('createdAt' | 'description' | 'id' | 'image' | 'owner' | 'updatedAt' | PostKeySpecifier)[];
+export type PayloadKeySpecifier = ('user' | PayloadKeySpecifier)[];
+export type PayloadFieldPolicy = {
+	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type PostKeySpecifier = ('comments' | 'createdAt' | 'description' | 'id' | 'image' | 'likes' | 'owner' | 'shares' | 'updatedAt' | PostKeySpecifier)[];
 export type PostFieldPolicy = {
+	comments?: FieldPolicy<any> | FieldReadFunction<any>,
 	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
 	description?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	image?: FieldPolicy<any> | FieldReadFunction<any>,
+	likes?: FieldPolicy<any> | FieldReadFunction<any>,
 	owner?: FieldPolicy<any> | FieldReadFunction<any>,
+	shares?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('me' | 'post' | 'posts' | 'user' | 'users' | QueryKeySpecifier)[];
+export type QueryKeySpecifier = ('friendsRequests' | 'friendships' | 'me' | 'post' | 'posts' | 'user' | 'users' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
+	friendsRequests?: FieldPolicy<any> | FieldReadFunction<any>,
+	friendships?: FieldPolicy<any> | FieldReadFunction<any>,
 	me?: FieldPolicy<any> | FieldReadFunction<any>,
 	post?: FieldPolicy<any> | FieldReadFunction<any>,
 	posts?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>,
 	users?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type UserKeySpecifier = ('avatar' | 'bio' | 'email' | 'firstName' | 'id' | 'isEmailConfirmed' | 'password' | 'posts' | 'secondName' | 'username' | UserKeySpecifier)[];
+export type ShareKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'updatedAt' | ShareKeySpecifier)[];
+export type ShareFieldPolicy = {
+	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	owner?: FieldPolicy<any> | FieldReadFunction<any>,
+	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type SubscriptionKeySpecifier = ('friendshipMutated' | 'lastSeenUpdated' | SubscriptionKeySpecifier)[];
+export type SubscriptionFieldPolicy = {
+	friendshipMutated?: FieldPolicy<any> | FieldReadFunction<any>,
+	lastSeenUpdated?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type UserKeySpecifier = ('avatar' | 'bio' | 'email' | 'firstName' | 'friends' | 'id' | 'isEmailConfirmed' | 'lastSeen' | 'location' | 'password' | 'phone' | 'posts' | 'secondName' | 'username' | UserKeySpecifier)[];
 export type UserFieldPolicy = {
 	avatar?: FieldPolicy<any> | FieldReadFunction<any>,
 	bio?: FieldPolicy<any> | FieldReadFunction<any>,
 	email?: FieldPolicy<any> | FieldReadFunction<any>,
 	firstName?: FieldPolicy<any> | FieldReadFunction<any>,
+	friends?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	isEmailConfirmed?: FieldPolicy<any> | FieldReadFunction<any>,
+	lastSeen?: FieldPolicy<any> | FieldReadFunction<any>,
+	location?: FieldPolicy<any> | FieldReadFunction<any>,
 	password?: FieldPolicy<any> | FieldReadFunction<any>,
+	phone?: FieldPolicy<any> | FieldReadFunction<any>,
 	posts?: FieldPolicy<any> | FieldReadFunction<any>,
 	secondName?: FieldPolicy<any> | FieldReadFunction<any>,
 	username?: FieldPolicy<any> | FieldReadFunction<any>
@@ -722,6 +1649,22 @@ export type UserResponseFieldPolicy = {
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type StrictTypedTypePolicies = {
+	Comment?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | CommentKeySpecifier | (() => undefined | CommentKeySpecifier),
+		fields?: CommentFieldPolicy,
+	},
+	Friendship?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | FriendshipKeySpecifier | (() => undefined | FriendshipKeySpecifier),
+		fields?: FriendshipFieldPolicy,
+	},
+	FriendshipMutatedPayload?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | FriendshipMutatedPayloadKeySpecifier | (() => undefined | FriendshipMutatedPayloadKeySpecifier),
+		fields?: FriendshipMutatedPayloadFieldPolicy,
+	},
+	Like?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | LikeKeySpecifier | (() => undefined | LikeKeySpecifier),
+		fields?: LikeFieldPolicy,
+	},
 	Mutation?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | MutationKeySpecifier | (() => undefined | MutationKeySpecifier),
 		fields?: MutationFieldPolicy,
@@ -730,6 +1673,10 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | PaginatedPostsResponseKeySpecifier | (() => undefined | PaginatedPostsResponseKeySpecifier),
 		fields?: PaginatedPostsResponseFieldPolicy,
 	},
+	Payload?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | PayloadKeySpecifier | (() => undefined | PayloadKeySpecifier),
+		fields?: PayloadFieldPolicy,
+	},
 	Post?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | PostKeySpecifier | (() => undefined | PostKeySpecifier),
 		fields?: PostFieldPolicy,
@@ -737,6 +1684,14 @@ export type StrictTypedTypePolicies = {
 	Query?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | QueryKeySpecifier | (() => undefined | QueryKeySpecifier),
 		fields?: QueryFieldPolicy,
+	},
+	Share?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ShareKeySpecifier | (() => undefined | ShareKeySpecifier),
+		fields?: ShareFieldPolicy,
+	},
+	Subscription?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | SubscriptionKeySpecifier | (() => undefined | SubscriptionKeySpecifier),
+		fields?: SubscriptionFieldPolicy,
 	},
 	User?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | UserKeySpecifier | (() => undefined | UserKeySpecifier),

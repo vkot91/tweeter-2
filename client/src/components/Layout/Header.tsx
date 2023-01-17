@@ -34,7 +34,7 @@ export const Header = ({ onOpen, ...rest }: MobileProps) => {
       height='80px'
       bg={bg}
       alignItems='center'
-      zIndex={3}
+      zIndex={5}
       borderBottom='1px solid'
       borderColor='gray.300'
       justifyContent={{ base: 'space-between', md: 'flex-start' }}

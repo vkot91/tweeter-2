@@ -1,0 +1,19 @@
+type Comment {
+  id: Int!
+  text: String!
+  createdAt: String!
+  updatedAt: String
+  owner: User!
+  ownerId: Int!
+}
+
+input CreateCommentInput {
+  postId: Int!
+  text: String!
+}
+
+
+type Mutation {
+  createComment(createCommentInput: CreateCommentInput!): Comment!
+  removeComment(id: Int!): Boolean
+}

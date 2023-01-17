@@ -1,5 +1,5 @@
-import { ROUTES_ENUM } from 'utils/constants/routes';
 import { FC } from 'react';
+import { ROUTES_ENUM } from 'utils/constants/routes';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'context/authed-user-context';
 import { HomeLayout } from 'components/Layout';

@@ -1,0 +1,8 @@
+mutation CreateFriendship($createFriendshipInput: CreateFriendshipInput!) {
+  createFriendship(createFriendshipInput: $createFriendshipInput) {
+    id
+    friend {
+      id
+    }
+  }
+}

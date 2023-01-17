@@ -1,0 +1,58 @@
+enum Status {
+  CONFIRMED
+  PENDING
+  REJECTED
+  BLOCKED
+}
+
+enum MutationType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+type Friendship {
+  id: Int!
+  friend_id: Int!
+  friend: User!
+  status: Status!
+  createdAt: String!
+  updatedAt: String!
+  attemptsCount: Int!
+  requestCreator: Boolean!
+}
+
+input CreateFriendshipInput {
+  friend_id: Int!
+}
+
+input UpdateStatusInput {
+  id: Int!
+  status: Status
+}
+
+input UpdateCreatorInput {
+  id: Int!
+  friend_id: Int!
+}
+
+type Query {
+  friendships(userId: Int!): [Friendship]
+  friendsRequests: [Friendship]!
+}
+
+type Mutation {
+  createFriendship(createFriendshipInput: CreateFriendshipInput!): Friendship!
+  removeFriendship(id: Int!): Friendship!
+  updateStatus(updateStatusInput: UpdateStatusInput!): Boolean!
+  updateCreator(id: Int!): Friendship!
+}
+
+type Subscription {
+  friendshipMutated(userId: Int!): FriendshipMutatedPayload
+}
+
+type FriendshipMutatedPayload {
+  mutation: MutationType!
+  node: Friendship!
+}

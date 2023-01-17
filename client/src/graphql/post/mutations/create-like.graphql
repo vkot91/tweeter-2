@@ -1,0 +1,5 @@
+mutation CreateLike($postId: Int!) {
+  createLike(postId: $postId) {
+    ...RegularLike
+  }
+}

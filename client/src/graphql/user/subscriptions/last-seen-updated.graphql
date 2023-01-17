@@ -1,0 +1,7 @@
+subscription LastSeenUpdated($userId: Int!) {
+  lastSeenUpdated(userId: $userId) {
+    user {
+      ...RegularUser
+    }
+  }
+}

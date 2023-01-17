@@ -20,8 +20,8 @@ export const AuthPage = () => {
   useEffect(() => {
     const token = params.get('token');
 
-    if ((routeName === ROUTES_ENUM.RESGISTER_SUCCESS || routeName === ROUTES_ENUM.RESTORE) && !params.get('email')) {
-      navigate(ROUTES_ENUM.LOGIN);
+    if ((routeName === ROUTES_ENUM.REGISTER_SUCCESS || routeName === ROUTES_ENUM.RESTORE) && !params.get('email')) {
+      // navigate(ROUTES_ENUM.LOGIN);
     }
     if (routeName === ROUTES_ENUM.CONFIRM && token) {
       handleConfirmEmail(token);
@@ -64,7 +64,6 @@ export const AuthPage = () => {
             {action && action}
           </Container>
         </Fragment>
-        )
       </VStack>
     </Box>
   );

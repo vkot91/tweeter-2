@@ -11,24 +11,87 @@ datasource db {
 }
 
 model User {
-  id               Int     @id @default(autoincrement())
-  email            String  @unique
-  password         String
-  firstName        String
-  secondName       String
-  bio              String?
-  avatar           String?
-  username         String  @unique
-  isEmailConfirmed Boolean @default(false)
-  posts            Post[]
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  password          String
+  firstName         String
+  secondName        String
+  bio               String?
+  avatar            String?
+  location          String?
+  phone             String?
+  username          String    @unique
+  isEmailConfirmed  Boolean   @default(false)
+  lastSeen          DateTime  @default(now())
+  posts             Post[]
+  userFriends       Friends[] @relation(name: "user")
+  friendUserFriends Friends[] @relation(name: "friend_users")
+  Like              Like[]
+  Share             Share[]
+  Comment           Comment[]
 }
 
 model Post {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   image       String?
   description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  owner       User     @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+  owner       User      @relation(fields: [ownerId], references: [id])
   ownerId     Int
+  likes       Like[]
+  shares      Share[]
+  comments    Comment[]
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+}
+
+model Share {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.VarChar(30)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   Int
+}
+
+model Friends {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  friend_id     Int
+  user          User     @relation(name: "user", fields: [user_id], references: [id])
+  friend        User     @relation(name: "friend_users", fields: [friend_id], references: [id])
+  status        Status   @default(PENDING)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  attemptsCount Int      @default(1)
+
+  @@unique([user_id, friend_id])
+}
+
+enum Status {
+  CONFIRMED
+  PENDING
+  REJECTED
+  BLOCKED
 }

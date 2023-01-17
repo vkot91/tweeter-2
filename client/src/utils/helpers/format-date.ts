@@ -1,25 +1,31 @@
-export const formatDate = (s: string) => {
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+import moment from 'moment';
 
-  const d = new Date(+s);
-  const year = d.getFullYear();
-  const month = monthNames[d.getMonth()];
-  const date = d.getDate();
-  const hour = d.getHours();
-  const min = d.getMinutes();
-  const currentYear = new Date().getFullYear();
-  return `${date} ${month}${currentYear - year >= 1 ? ` ${year}` : ''}, ${hour}:${min}`;
+export const formatDate = (timestamp: string) => {
+  moment.locale('en', {
+    relativeTime: {
+      future: 'in %s',
+      past: '%s ago',
+      s: '1s',
+      ss: '%ss',
+      m: '1m',
+      mm: '%dm',
+      h: '1h',
+      hh: '%dh',
+      d: '1d',
+      dd: '%dd',
+      M: '1M',
+      MM: '%dM',
+      y: '1Y',
+      yy: '%dY',
+    },
+  });
+  return moment(+timestamp).fromNow();
+};
+
+export const getSecondsDifferenceBetweenDates = (timestamp: string) => {
+  const now = moment(new Date()); //todays date
+  const end = moment(+timestamp); // another date
+  const duration = moment.duration(now.diff(end));
+  const seconds = duration.asSeconds();
+  return seconds;
 };

@@ -1,11 +1,12 @@
 import { AuthPage } from 'pages/Auth';
 import { HomePage } from 'pages/Home';
+import { NotificationsPage } from 'pages/Notifications';
 import { ProfilePage } from 'pages/Profile';
 
 export enum ROUTES_ENUM {
   LOGIN = '/login',
   REGISTER = '/register',
-  RESGISTER_SUCCESS = '/register/success',
+  REGISTER_SUCCESS = '/register/success',
   CONFIRM = '/confirm',
   FORGOT_PASSWORD = '/forgot-password',
   RESTORE = '/restore',
@@ -30,7 +31,7 @@ export const publicRoutes: Route = {
     ROUTES_ENUM.REGISTER,
     ROUTES_ENUM.CONFIRM,
     ROUTES_ENUM.FORGOT_PASSWORD,
-    ROUTES_ENUM.RESGISTER_SUCCESS,
+    ROUTES_ENUM.REGISTER_SUCCESS,
     ROUTES_ENUM.RESTORE,
   ],
 };
@@ -43,5 +44,9 @@ export const privateRoutes = [
   {
     path: ROUTES_ENUM.PROFILE,
     element: <ProfilePage />,
+  },
+  {
+    path: ROUTES_ENUM.NOTIFICATION,
+    element: <NotificationsPage />,
   },
 ];

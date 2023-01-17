@@ -1,5 +1,27 @@
 scalar Upload
 
+enum ActionType {
+  friends
+  all
+  owner
+}
+
+type Like {
+  id: Int!
+  createdAt: String!
+  updatedAt: String
+  owner: User!
+  ownerId: Int!
+}
+
+type Share {
+  id: Int!
+  createdAt: String!
+  updatedAt: String
+  owner: User!
+  ownerId: Int!
+}
+
 type Post {
   id: Int!
   description: String!
@@ -7,6 +29,9 @@ type Post {
   createdAt: String!
   updatedAt: String
   owner: User!
+  likes: [Like!]
+  shares: [Share!]
+  comments: [Comment!]
 }
 
 input CreatePostInput {
@@ -21,6 +46,7 @@ input UpdatePostInput {
 }
 
 input PaginationPostsInput {
+  action: ActionType
   ownerId: Int!
   take: Int = 3
   activePage: Int = 1
@@ -41,4 +67,8 @@ type Mutation {
   createPost(createPostInput: CreatePostInput!): Post!
   updatePost(updatePostInput: UpdatePostInput!): Post!
   removePost(id: Int!): Boolean!
+  createLike(postId: Int!): Like!
+  createShare(postId: Int!): Share!
+  removeLike(id: Int!): Boolean!
+  removeShare(id: Int!): Boolean!
 }

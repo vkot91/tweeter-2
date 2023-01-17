@@ -1,7 +1,7 @@
 import { Image as ChakraImage } from '@chakra-ui/react';
 
 interface Props {
-  url: string;
+  url?: string;
   alt: string;
 }
 

@@ -1,3 +1,5 @@
+scalar Upload
+
 type User {
   id: Int!
   email: String!
@@ -6,9 +8,13 @@ type User {
   secondName: String!
   bio: String
   avatar: String
+  location: String
+  phone: String
   username: String!
   isEmailConfirmed: Boolean
   posts: [Post!]
+  friends: [Friendship!]
+  lastSeen: String!
 }
 
 input CreateUserInput {
@@ -21,10 +27,16 @@ input CreateUserInput {
 
 input UpdateUserInput {
   id: Int!
-  password: String
   firstName: String
   secondName: String
   username: String
+  bio: String
+  location: String
+  email: String
+  avatar: Upload
+  phone: String
+  password: String
+  lastSeen: String
 }
 
 input GetUserInput {
@@ -42,3 +54,11 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User
 }
+
+type Subscription{
+  lastSeenUpdated(userId: Int!): Payload
+}
+
+type Payload{
+  user: User
+} 

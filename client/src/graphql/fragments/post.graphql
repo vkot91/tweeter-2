@@ -7,4 +7,13 @@ fragment RegularPost on Post {
   owner {
     ...RegularUser
   }
+  likes {
+    ...RegularLike
+  }
+  shares {
+    ...RegularShare
+  }
+  comments {
+    ...RegularComment
+  }
 }

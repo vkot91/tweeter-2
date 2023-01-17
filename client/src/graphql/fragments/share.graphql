@@ -1,0 +1,6 @@
+fragment RegularShare on Share {
+  id
+  createdAt
+  updatedAt
+  ownerId
+}

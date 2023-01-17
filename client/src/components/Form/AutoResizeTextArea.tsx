@@ -1,16 +1,17 @@
 import ResizeTextarea from 'react-textarea-autosize';
 import React from 'react';
-import { FormControl, Textarea, TextareaProps, useColorModeValue, FormErrorMessage } from '@chakra-ui/react';
+import { FormControl, Textarea, TextareaProps, useColorModeValue, FormErrorMessage, FormLabel } from '@chakra-ui/react';
 
 interface Props extends TextareaProps {
   minRows?: number;
   error?: string;
+  label?: string;
 }
 
 export const AutoResizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>((props, ref) => {
-  const placeholderColor = useColorModeValue('gray.700', 'gray.300');
   return (
     <FormControl w='full' isInvalid={!!props.error}>
+      {props.label && <FormLabel>{props.label}</FormLabel>}
       <Textarea
         minH='unset'
         overflow='hidden'
@@ -19,7 +20,6 @@ export const AutoResizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>((
         ref={ref}
         minRows={props.minRows || 2}
         as={ResizeTextarea}
-        _placeholder={{ color: placeholderColor }}
         {...props}
       />
       {props.error && <FormErrorMessage>{props.error}.</FormErrorMessage>}

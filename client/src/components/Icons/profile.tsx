@@ -1,6 +1,6 @@
 import { Icon, IconProps } from '@chakra-ui/react';
 
-export const ProfileIcon = ({ color }: IconProps) => {
+export const ProfileIcon = ({ color, ...props }: IconProps) => {
   return (
     <Icon
       w={6}
@@ -9,6 +9,7 @@ export const ProfileIcon = ({ color }: IconProps) => {
       xmlns='http://www.w3.org/2000/svg'
       enableBackground='new 0 0 64 64'
       viewBox='0 0 64 64'
+      {...props}
     >
       <path
         fill='currentColor'

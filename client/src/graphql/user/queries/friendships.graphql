@@ -1,0 +1,5 @@
+query Friendships($userId: Int!) {
+  friendships(userId: $userId) {
+    ...RegularFriendship
+  }
+}

@@ -1,20 +1,21 @@
-import { CircularProgress, Flex } from '@chakra-ui/react';
+import { CircularProgress, Flex, useToast } from '@chakra-ui/react';
 import {
   RegularUserFragment,
   useConfirmMutation,
   useForgotPasswordMutation,
   useLoginMutation,
   useMeQuery,
+  User,
   useRegisterMutation,
 } from 'generated/graphql';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { createSearchParams, useNavigate } from 'react-router-dom';
+import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { ForgotPasswordFormInput, LoginFormInput, RegisterFormInput } from 'types';
 import { ROUTES_ENUM } from 'utils/constants/routes';
 import cookie from 'js-cookie';
 
 interface AuthContextInterface {
-  authedUser: RegularUserFragment | null;
+  authedUser: User | null;
   error?: {
     key: string;
     message: string | undefined;
@@ -35,10 +36,13 @@ export const AuthProvider = ({ children }: { children: JSX.Element }) => {
   const [register, { error: registrationError }] = useRegisterMutation();
   const [confirm, { error: confirmError }] = useConfirmMutation();
   const [forgotPassword, { error: forgotPasswordError }] = useForgotPasswordMutation();
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthContextInterface['error'] | null>(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const toast = useToast({
+    position: 'top-right',
+  });
 
   useEffect(() => {
     if (userData) {
@@ -60,6 +64,10 @@ export const AuthProvider = ({ children }: { children: JSX.Element }) => {
       });
     }
   }, [loginError, registrationError, forgotPasswordError]);
+
+  useEffect(() => {
+    setError(null);
+  }, [pathname]);
 
   const handleLogin = async (values: LoginFormInput) => {
     const { remember, ...restValues } = values;
@@ -87,10 +95,18 @@ export const AuthProvider = ({ children }: { children: JSX.Element }) => {
       variables: {
         createUserInput,
       },
+      onError: (e) => {
+        toast({
+          title: e.message,
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+      },
     });
-    if (data?.register) {
+    if (data?.register.id) {
       navigate({
-        pathname: ROUTES_ENUM.RESGISTER_SUCCESS,
+        pathname: ROUTES_ENUM.REGISTER_SUCCESS,
         search: createSearchParams({
           email: values.email,
         }).toString(),
@@ -99,7 +115,6 @@ export const AuthProvider = ({ children }: { children: JSX.Element }) => {
   };
 
   const handleConfirmEmail = async (token: string) => {
-    console.log('handleConfirmEmail');
     const { data } = await confirm({
       variables: {
         token,
@@ -162,9 +177,7 @@ export const AuthProvider = ({ children }: { children: JSX.Element }) => {
   );
 };
 
-const useAuth = () => {
+export const useAuth = () => {
   const authedUser = useContext(AuthContext);
   return authedUser;
 };
-
-export { useAuth };

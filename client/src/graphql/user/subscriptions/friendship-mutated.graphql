@@ -1,0 +1,8 @@
+subscription FriendshipMutated($userId: Int!) {
+  friendshipMutated(userId: $userId) {
+    mutation
+    node {
+      ...RegularFriendship
+    }
+  }
+}

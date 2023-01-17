@@ -6,7 +6,7 @@ import { ImageUploadIcon } from 'components/Icons';
 interface Props extends Omit<ButtonProps, 'onChange' | 'value'> {
   id: string;
   setImage: (result: string) => void;
-  onChange: (file: File) => void;
+  onChange?: (file: File) => void;
   icon?: JSX.Element;
   text?: string;
 }
@@ -29,13 +29,21 @@ export const UploadImage = React.forwardRef<HTMLInputElement, Props>(
               return;
             }
             const file = input.files[0];
-            onChange(file);
+            if (onChange) {
+              onChange(file);
+            }
             convertBase64(file).then((result) => setImage(result));
           }}
         />
 
         {text ? (
-          <Button onClick={() => inputRef?.current?.click()} aria-label='upload picture' leftIcon={icon} type='button'>
+          <Button
+            onClick={() => inputRef?.current?.click()}
+            aria-label='upload picture'
+            leftIcon={icon}
+            type='button'
+            variant='ghost'
+          >
             {text}
           </Button>
         ) : (

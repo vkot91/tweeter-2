@@ -1,0 +1,5 @@
+mutation CreateShare($postId: Int!) {
+  createShare(postId: $postId) {
+    ...RegularShare
+  }
+}

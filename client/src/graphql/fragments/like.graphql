@@ -1,0 +1,6 @@
+fragment RegularLike on Like {
+  id
+  createdAt
+  updatedAt
+  ownerId
+}

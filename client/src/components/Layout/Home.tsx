@@ -2,7 +2,7 @@ import { Box, Drawer, DrawerContent, Grid, GridItem, Show, useColorModeValue, us
 
 import { SidebarContent } from 'components/Sidebar/LeftSide';
 import { Header } from 'components/Layout/Header';
-import { FriendsList } from 'components/Sidebar/RightSide/Friends/List';
+import { FriendsList } from 'components/Friends/List';
 import { useLocation } from 'react-router-dom';
 
 export const HomeLayout = ({ children }: { children: JSX.Element }) => {
@@ -39,7 +39,12 @@ export const HomeLayout = ({ children }: { children: JSX.Element }) => {
         templateColumns={{ base: '1fr', sm: '1fr', md: '1fr', lg: isProfilePage ? '1fr' : '0.9fr 0.3fr' }}
         gap={1}
       >
-        <GridItem mt='80px' bg={bg} transform='translate3d(0,0,0)' p={8}>
+        <GridItem
+          mt='80px'
+          bg={bg}
+          transform='translate3d(0,0,0)'
+          px={isProfilePage ? { base: 0 } : { base: 2, md: 8 }}
+        >
           {children}
         </GridItem>
         {!isProfilePage && (

@@ -1,0 +1,8 @@
+mutation updateCreator($friendshipId: Int!) {
+  updateCreator(id: $friendshipId) {
+    id
+    friend {
+      id
+    }
+  }
+}

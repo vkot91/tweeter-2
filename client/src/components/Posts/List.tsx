@@ -6,9 +6,10 @@ import { PostItem } from './Item';
 interface Props {
   posts?: Post[];
   loading: boolean;
+  isPageOwner?: boolean;
 }
 
-export const PostsList = ({ posts, loading }: Props) => {
+export const PostsList = ({ posts, loading, isPageOwner }: Props) => {
   return (
     <VStack id='posts-container' spacing={7}>
       {loading && (
@@ -17,7 +18,7 @@ export const PostsList = ({ posts, loading }: Props) => {
         </Center>
       )}
       {posts?.map((post) => (
-        <PostItem key={post.id} {...post} />
+        <PostItem key={post.id} isPageOwner={isPageOwner} {...post} />
       ))}
     </VStack>
   );

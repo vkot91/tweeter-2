@@ -1,22 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { FilesService } from 'files/files.service';
 import { PrismaService } from 'prisma/prisma.service';
 
 import {
+  ActionType,
   CreatePostInput,
   PaginationPostsInput,
   UpdatePostInput,
 } from 'types/graphql';
+import { UserService } from 'user/user.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private prisma: PrismaService,
     private filesService: FilesService,
+    private usersService: UserService,
   ) {}
 
-  async create(createPostInput: CreatePostInput, ownerId: number) {
+  async createPost(createPostInput: CreatePostInput, ownerId: number) {
     const { description, file: upload } = createPostInput;
 
     const fileName = await this.filesService.saveImageOnServer(upload?.file);
@@ -33,19 +37,102 @@ export class PostService {
     return post;
   }
 
-  async getPosts(paginationPostsInput: PaginationPostsInput) {
-    const { activePage, take, ownerId } = paginationPostsInput;
-    const posts = await this.prisma.post.findMany({
-      take: take,
-      skip: (activePage - 1) * take,
-      // where: {
-      //   ownerId,
-      // },
-      orderBy: {
-        updatedAt: 'desc',
+  async createLike(postId: number, ownerId: number) {
+    await this.getPostById(postId);
+    const like = this.prisma.like.create({
+      data: {
+        postId,
+        ownerId,
       },
+    });
+    return like;
+  }
+
+  async createShare(postId: number, ownerId: number) {
+    await this.getPostById(postId);
+    const share = this.prisma.share.create({
+      data: {
+        postId,
+        ownerId,
+      },
+    });
+    return share;
+  }
+
+  async getPosts(paginationPostsInput: PaginationPostsInput) {
+    const {
+      activePage,
+      take,
+      ownerId,
+      action = ActionType.friends,
+    } = paginationPostsInput;
+
+    const user = await this.usersService.getUserFriends(ownerId);
+    const userFriendsIdsList = user.friendUserFriends.map((item) => {
+      if (item.friend_id === ownerId) {
+        return item.user_id;
+      }
+      if (item.user_id === ownerId) {
+        return item.friend_id;
+      }
+    });
+
+    user.userFriends.map((item) => {
+      if (item.friend_id === ownerId) {
+        userFriendsIdsList.push(item.user_id);
+      }
+      if (item.user_id === ownerId) {
+        userFriendsIdsList.push(item.friend_id);
+      }
+    });
+
+    const filter = {
+      where: {},
+    };
+
+    if (action === ActionType.owner) {
+      filter.where = {
+        OR: [
+          {
+            ownerId,
+          },
+          {
+            shares: {
+              some: {
+                ownerId,
+              },
+            },
+          },
+        ],
+      };
+    }
+    if (action === ActionType.friends) {
+      filter.where = {
+        ownerId: {
+          in: [...userFriendsIdsList, ownerId],
+        },
+      };
+    }
+
+    const posts = await this.prisma.post.findMany({
       include: {
         owner: true,
+        likes: true,
+        shares: true,
+        comments: {
+          include: {
+            owner: true,
+          },
+          orderBy: {
+            updatedAt: 'desc',
+          },
+        },
+      },
+      where: filter.where,
+      take: take,
+      skip: (activePage - 1) * take,
+      orderBy: {
+        updatedAt: 'desc',
       },
       // include: {
       //   author: {
@@ -91,8 +178,11 @@ export class PostService {
       //   },
       // },
     });
-    const totalCount = await this.prisma.post.count();
-    const hasMore = totalCount > posts.length * activePage;
+    const totalCount = await this.prisma.post.count({
+      where: filter.where,
+    });
+
+    const hasMore = posts.length >= take;
 
     return {
       items: posts,
@@ -136,18 +226,24 @@ export class PostService {
         },
         include: {
           owner: true,
+          likes: true,
+          shares: true,
+          comments: {
+            include: {
+              owner: true,
+            },
+          },
         },
       });
       return updatedPost;
     } catch (error) {
-      console.log(error);
       if (error.code === 'P2025') {
         throw new NotFoundException('Tweet with this id does not exists');
       }
     }
   }
 
-  async remove(id: number) {
+  async removePost(id: number) {
     const currentPost = await this.getPostById(id);
     if (currentPost.image) {
       this.filesService.deleteImageFromServer(currentPost.image);
@@ -158,11 +254,39 @@ export class PostService {
       });
       return true;
     } catch (error) {
-      console.log(error);
-
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException('Tweet with this id does not exists');
+          throw new NotFoundException('Post with this id does not exists');
+        }
+      }
+    }
+  }
+
+  async removeLike(id: number) {
+    try {
+      await this.prisma.like.delete({
+        where: { id },
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('Post with this id does not exists');
+        }
+      }
+    }
+  }
+
+  async removeShare(id: number) {
+    try {
+      await this.prisma.share.delete({
+        where: { id },
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException('Post with this id does not exists');
         }
       }
     }

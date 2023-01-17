@@ -32,7 +32,6 @@ export class AuthService {
   async create(createUserInput: CreateUserInput) {
     const { password, ...restOptions } = createUserInput;
     const hashedPassword = await this.generateHadhedPassword(password);
-
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -81,7 +80,6 @@ export class AuthService {
 
   async confirm(token: string) {
     const { email }: TokenResponse = this.jwtService.verify(token);
-    console.log(email);
     if (!email) throw new UnauthorizedException();
     await this.prisma.user.update({
       where: { email },

@@ -3,15 +3,10 @@ import { Avatar, Box, BoxProps, Button, Flex, IconButton, useColorModeValue } fr
 import { yupResolver } from '@hookform/resolvers/yup';
 import { AutoResizeTextarea } from 'components/Form';
 import { PostImage, UploadImage } from 'components/Image';
-import {
-  PostsDocument,
-  PostsQuery,
-  PostsQueryResult,
-  useCreatePostMutation,
-  useUpdatePostMutation,
-} from 'generated/graphql';
+import { PostsDocument, useCreatePostMutation, useUpdatePostMutation } from 'generated/graphql';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { GetPostsActions } from 'types';
 import { checkImage } from 'utils/helpers';
 import { postCreateValidationSchema } from 'utils/validation/post-create';
 
@@ -27,10 +22,11 @@ interface Props extends BoxProps {
     id: number;
     description: string;
   };
+  action?: GetPostsActions;
   helperFunc?: () => void;
 }
 
-export const PostForm = ({ ownerId, defaultValues, helperFunc, ...rest }: Props) => {
+export const PostForm = ({ ownerId, defaultValues, helperFunc, action, ...rest }: Props) => {
   const [createPost] = useCreatePostMutation();
   const [updatePost] = useUpdatePostMutation();
   const {
@@ -46,13 +42,10 @@ export const PostForm = ({ ownerId, defaultValues, helperFunc, ...rest }: Props)
     defaultValues,
   });
   const defaultImage = defaultValues?.file;
-  const [previewImage, setPreviewImage] = useState<string | null>(
-    typeof defaultImage === 'string' ? checkImage(defaultImage) : null,
-  );
+  const [previewImage, setPreviewImage] = useState<string | undefined>(checkImage(defaultImage));
   const bgColor = useColorModeValue('bg.light.secondary', 'bg.dark.secondary');
 
   const onSubmit = async (postInput: FormValues) => {
-    console.log(postInput.file !== defaultImage);
     if (defaultValues && helperFunc) {
       await updatePost({
         variables: {
@@ -77,6 +70,7 @@ export const PostForm = ({ ownerId, defaultValues, helperFunc, ...rest }: Props)
               paginationPostsInput: {
                 activePage: 1,
                 ownerId,
+                action,
               },
             },
           },
@@ -95,10 +89,9 @@ export const PostForm = ({ ownerId, defaultValues, helperFunc, ...rest }: Props)
   };
 
   const onClearImage = () => {
-    setPreviewImage(null);
+    setPreviewImage(undefined);
     setValue('file', undefined);
   };
-
   return (
     <Box as='form' layerStyle='box' {...rest} onSubmit={handleSubmit(onSubmit)}>
       <Flex gap={4}>
@@ -134,7 +127,7 @@ export const PostForm = ({ ownerId, defaultValues, helperFunc, ...rest }: Props)
           <PostImage alt='post-image' url={previewImage} />
         </Box>
       )}
-      <Flex mt={3} px={3} justify='space-between'>
+      <Flex mt={3} justify='space-between'>
         <Controller
           key='file'
           name='file'

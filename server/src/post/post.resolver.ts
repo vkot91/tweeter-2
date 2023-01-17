@@ -6,7 +6,6 @@ import { GetUser } from 'auth/utils/get-user.decorator';
 import {
   CreatePostInput,
   PaginationPostsInput,
-  Post,
   UpdatePostInput,
   User,
 } from 'types/graphql';
@@ -22,7 +21,17 @@ export class PostResolver {
     @Args('createPostInput') createPostInput: CreatePostInput,
     @GetUser() user: User,
   ) {
-    return this.postService.create(createPostInput, user.id);
+    return this.postService.createPost(createPostInput, user.id);
+  }
+
+  @Mutation('createLike')
+  createLike(@Args('postId') postId: number, @GetUser() user: User) {
+    return this.postService.createLike(postId, user.id);
+  }
+
+  @Mutation('createShare')
+  createShare(@Args('postId') postId: number, @GetUser() user: User) {
+    return this.postService.createShare(postId, user.id);
   }
 
   @Query('posts')
@@ -38,7 +47,17 @@ export class PostResolver {
   }
 
   @Mutation('removePost')
-  remove(@Args('id') id: number) {
-    return this.postService.remove(id);
+  removePost(@Args('id') id: number) {
+    return this.postService.removePost(id);
+  }
+
+  @Mutation('removeLike')
+  removeLike(@Args('id') id: number) {
+    return this.postService.removeLike(id);
+  }
+
+  @Mutation('removeShare')
+  removeShare(@Args('id') id: number) {
+    return this.postService.removeShare(id);
   }
 }

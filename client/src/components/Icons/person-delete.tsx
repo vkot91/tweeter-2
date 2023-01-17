@@ -1,7 +1,7 @@
 import { Icon } from '@chakra-ui/react';
 import { IconProps } from './types';
 
-export const PersonDeleteIcon = ({ color = 'gray.400' }: IconProps) => {
+export const PersonDeleteIcon = ({ color }: IconProps) => {
   return (
     <Icon color={color} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>
       <path

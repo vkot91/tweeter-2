@@ -1,32 +1,10 @@
-import { ApolloClient, InMemoryCache, Observable, ApolloLink, split, Operation, FetchResult } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloLink, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import cookies from 'js-cookie';
 import { createUploadLink } from 'apollo-upload-client';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { createClient, ClientOptions, Client } from 'graphql-ws';
-import { print } from 'graphql';
-
-class WebSocketLink extends ApolloLink {
-  private client: Client;
-
-  constructor(options: ClientOptions) {
-    super();
-    this.client = createClient(options);
-  }
-
-  public request(operation: Operation): Observable<FetchResult> {
-    return new Observable((sink) => {
-      return this.client.subscribe<FetchResult>(
-        { ...operation, query: print(operation.query) },
-        {
-          next: sink.next.bind(sink),
-          complete: sink.complete.bind(sink),
-          error: sink.error.bind(sink),
-        },
-      );
-    });
-  }
-}
+import { createClient } from 'graphql-ws';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 
 const authLink = setContext((_, { headers }) => {
   const token = cookies.get('token');
@@ -40,12 +18,14 @@ const authLink = setContext((_, { headers }) => {
 
 const wsLink = () => {
   const token = cookies.get('token');
-  return new WebSocketLink({
-    url: `${process.env.REACT_APP_WS_URL}`,
-    connectionParams: {
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  });
+  return new GraphQLWsLink(
+    createClient({
+      url: `${process.env.REACT_APP_WS_URL}`,
+      connectionParams: {
+        token: token ? `Bearer ${token}` : '',
+      },
+    }),
+  );
 };
 
 const uploadLink = createUploadLink({ uri: `${process.env.REACT_APP_API_URL}` });
@@ -67,33 +47,24 @@ export const client = new ApolloClient({
       Query: {
         fields: {
           posts: {
-            keyArgs: ['id'],
+            keyArgs: ['id', 'action', 'like', 'share'],
             // eslint-disable-next-line default-param-last
-            merge(existing = [], incoming) {
-              return {
-                ...incoming,
-                items: [...(existing?.items || []), ...incoming.items],
-              };
+            merge(existing = [], incoming, { args }) {
+              if (args?.paginationPostsInput) {
+                return {
+                  ...incoming,
+                  items: [...(existing?.items || []), ...incoming.items],
+                };
+              } else {
+                return incoming;
+              }
             },
           },
-          // comments: {
-          //   keyArgs: ['tweetId', 'id'],
-          //   // eslint-disable-next-line default-param-last
-          //   merge(existing = [], incoming) {
-          //     if (incoming && existing.items && incoming?.items.length > existing?.items.length) {
-          //       return {
-          //         ...incoming,
-          //       };
-          //     }
-          //     return {
-          //       ...incoming,
-          //       items: [...(existing?.items || []), ...incoming.items],
-          //     };
-          //   },
-          // },
-          // user: {
-          //   keyArgs: ['followers', 'followings'],
-          // },
+          friendsRequests: {
+            merge(_, incoming) {
+              return [...incoming];
+            },
+          },
         },
       },
     },

@@ -1,14 +1,11 @@
 import { AtIcon, LockIcon, UserCardIcon } from 'components/Icons';
-import { ForgotPasswordFormInput, LoginFormInput, RegisterFormInput, RestorePasswordFormInput } from 'types';
-
-export interface BaseFieldsType<T> {
-  name: keyof T;
-  type: 'email' | 'text' | 'password' | 'checkbox';
-  placeholder?: string;
-  disabled?: boolean;
-  icon?: JSX.Element;
-  defaultValue?: string | boolean;
-}
+import {
+  BaseFieldsType,
+  ForgotPasswordFormInput,
+  LoginFormInput,
+  RegisterFormInput,
+  RestorePasswordFormInput,
+} from 'types';
 
 const registerFields: BaseFieldsType<RegisterFormInput>[] = [
   {
