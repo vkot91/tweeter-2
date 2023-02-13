@@ -4,7 +4,7 @@ import { CircleLoader } from 'components/Loader/Circle';
 import { PostForm, PostsList } from 'components/Posts';
 import { BaseRecommendationBox, FriendBox } from 'components/Recommendation';
 import { useAuth } from 'context/authed-user-context';
-import { ActionType, Post } from 'generated/graphql';
+import { GetPostsActionType, Post } from 'generated/graphql';
 import { useGetPosts } from 'hooks/use-get-posts';
 
 export const HomePage = () => {
@@ -17,7 +17,7 @@ export const HomePage = () => {
     newPostsLoading,
   } = useGetPosts({
     ownerId: authedUser!.id,
-    action: ActionType.Friends,
+    action: GetPostsActionType.Friends,
   });
 
   return (

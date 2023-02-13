@@ -1,7 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { Post, Share, Like } from '@prisma/client';
 import { FriendsService } from 'friends/friends.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { NotificationType, User } from 'types/graphql';
+
+type RelationType = {
+  likes: (Like & {
+    post: Post;
+    owner: User;
+  })[];
+  shares: (Share & {
+    post: Post;
+    owner: User;
+  })[];
+  comments: (Comment & {
+    post: Post;
+    owner: User;
+  })[];
+};
 
 @Injectable()
 export class NotificationService {
@@ -27,28 +43,9 @@ export class NotificationService {
         __typename: NotificationType.Friendship,
       }));
 
-    const postReactions = await this.prisma.post.findMany({
-      where: { ownerId: user.id },
-      include: {
-        likes: {
-          where: {
-            checked: false,
-          },
-          include: {
-            owner: true,
-            post: true,
-          },
-        },
-        shares: {
-          where: {
-            checked: false,
-          },
-          include: {
-            owner: true,
-            post: true,
-          },
-        },
-        comments: {
+    const relations = ['likes', 'shares', 'comments'].reduce(
+      (acc, curr) => (
+        (acc[curr] = {
           where: {
             checked: false,
             NOT: {
@@ -59,9 +56,16 @@ export class NotificationService {
             owner: true,
             post: true,
           },
-        },
-      },
-    });
+        }),
+        acc
+      ),
+      {},
+    );
+
+    const postReactions = (await this.prisma.post.findMany({
+      where: { ownerId: user.id },
+      select: relations,
+    })) as RelationType[];
 
     const likes = postReactions.flatMap((item) => item.likes);
     const shares = postReactions.flatMap((item) => item.shares);

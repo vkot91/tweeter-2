@@ -2,7 +2,6 @@ fragment RegularPost on Post {
   id
   description
   image
-  createdAt
   updatedAt
   owner {
     ...RegularUser

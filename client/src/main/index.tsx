@@ -3,7 +3,7 @@ import { ChakraProvider, CircularProgress, ColorModeScript, localStorageManager 
 import { ActiveNotificationProvider } from 'context/active-notification-context';
 import { AuthProvider } from 'context/authed-user-context';
 import { FriendsProvider } from 'context/friends-context';
-import { FriendsRequestsProvider } from 'context/friends-requests-context';
+import { NotificationsProvider } from 'context/notifications-context';
 import { Suspense } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { Routes } from 'routes';
@@ -20,11 +20,11 @@ export const App = () => {
             <BrowserRouter>
               <ActiveNotificationProvider>
                 <AuthProvider>
-                  <FriendsRequestsProvider>
+                  <NotificationsProvider>
                     <FriendsProvider>
                       <Routes />
                     </FriendsProvider>
-                  </FriendsRequestsProvider>
+                  </NotificationsProvider>
                 </AuthProvider>
               </ActiveNotificationProvider>
             </BrowserRouter>

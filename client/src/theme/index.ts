@@ -55,18 +55,19 @@ const link: ComponentStyleConfig = {
     _focus: { boxShadow: 'none' },
   },
   variants: {
-    underlined: {
-      color: 'gray.600',
+    underlined: ({ colorMode }: StyleFunctionProps) => ({
+      color: colorMode === 'dark' ? 'whiteAlpha.800' : 'gray.600',
       ':hover': {
         textDecoration: 'underline',
       },
-    },
-    pure: {
+    }),
+    pure: ({ colorMode }: StyleFunctionProps) => ({
+      color: colorMode === 'dark' ? 'whiteAlpha.800' : 'gray.600',
       ':hover': {
         textDecoration: 'none',
         color: 'gray.600',
       },
-    },
+    }),
     menu: ({ colorMode }: StyleFunctionProps) => ({
       color: colorMode === 'dark' ? colors.primaryFontColor.darkMode : colors.primaryFontColor.lightMode,
     }),

@@ -4,7 +4,7 @@ import { useAuth } from 'context/authed-user-context';
 import {
   Friendship,
   FriendshipsDocument,
-  FriendsRequestsDocument,
+  NotificationsDocument,
   Status,
   useCreateFriendshipMutation,
   useRemoveFriendshipMutation,
@@ -76,7 +76,7 @@ export const useFriendship = ({ friendship, isOwnerPage, profileId }: Props) => 
             status,
           },
         },
-        refetchQueries: [FriendsRequestsDocument, ...(refetchUser ? [FriendshipsDocument] : [])],
+        refetchQueries: [NotificationsDocument, ...(refetchUser ? [FriendshipsDocument] : [])],
       });
     }
   };

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 
 interface ActiveNotificationContextInterface {
-  notificationId: number | null;
+  activeNotificationId: number | null;
   handleSetActiveNotificationId: (id: number | null) => void;
 }
 
@@ -17,7 +17,7 @@ export const ActiveNotificationProvider = ({ children }: { children: JSX.Element
   };
 
   const value = {
-    notificationId: activeNotificationId,
+    activeNotificationId,
     handleSetActiveNotificationId,
   };
 

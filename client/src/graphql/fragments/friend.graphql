@@ -1,18 +1,14 @@
 fragment RegularFriendship on Friendship {
   id
   friend {
-    id
-    firstName
-    secondName
-    avatar
-    username
-    email
-    lastSeen
+    ...RegularUser
   }
   friend_id
   status
-  createdAt
   updatedAt
   attemptsCount
   requestCreator
+  requestCreatorInfo {
+    ...RegularUser
+  }
 }

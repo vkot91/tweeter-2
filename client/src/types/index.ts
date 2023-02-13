@@ -1,4 +1,4 @@
-import { ActionType, Status } from 'generated/graphql';
+import { GetPostsActionType, Status } from 'generated/graphql';
 
 export interface RegisterFormInput {
   email: string;
@@ -62,8 +62,12 @@ export interface FriendshipFromRequest {
   } | null;
 }
 
-export type GetPostsActions = ActionType;
+export type GetPostsActions = GetPostsActionType;
 
 export enum ToastTypes {
   NewFriendRequest,
+  PostLike,
+  PostShare,
+  PostComment,
+  FriendRequestAccepted,
 }

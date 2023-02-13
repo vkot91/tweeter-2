@@ -1,12 +1,17 @@
 fragment RegularComment on Comment {
   id
   text
-  createdAt
+  updatedAt
   ownerId
+  checked
   owner {
     firstName
     secondName
     avatar
     id
+  }
+  post {
+    id
+    description
   }
 }

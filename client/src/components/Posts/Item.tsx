@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Link } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Avatar, AvatarGroup, Box, Divider, Flex, HStack, Text, VStack } from '@chakra-ui/react';
+import { Avatar, Box, Divider, Flex, HStack, Text, VStack } from '@chakra-ui/react';
 import { PostImage } from 'components/Image';
 import { CommentForm, CommentsList } from 'components/Comments';
 import { PostReactions } from './Reactions';
@@ -18,18 +18,7 @@ interface Props extends Post {
   isPageOwner?: boolean;
 }
 
-export const PostItem = ({
-  id,
-  image,
-  owner,
-  description,
-  createdAt,
-  updatedAt,
-  likes,
-  shares,
-  comments,
-  isPageOwner,
-}: Props) => {
+export const PostItem = ({ id, image, owner, description, updatedAt, likes, shares, comments, isPageOwner }: Props) => {
   const [visibleCommentField, setVisibleCommentField] = useState(false);
   const [visibleComments, setVisibleComments] = useState(false);
   const { authedUser } = useAuth();
@@ -96,12 +85,12 @@ export const PostItem = ({
           <Avatar size='md' name='K' />
           <VStack align='flex-start'>
             <Text fontWeight='semibold'>
-              <Link as={RouterLink} to={replaceProfileLink(owner.username)} variant='pure' color='gray.800'>
+              <Link as={RouterLink} to={replaceProfileLink(owner.username)} variant='pure'>
                 {owner.firstName} {owner.secondName}
               </Link>
             </Text>
             <Text variant='secondary' fontSize='sm'>
-              {formatDate(updatedAt || createdAt)}
+              {formatDate(updatedAt)}
             </Text>
           </VStack>
           {isPostOwner && (
@@ -116,27 +105,26 @@ export const PostItem = ({
         <Text>{description}</Text>
         {image && <PostImage url={checkImage(image)} alt='Post image' />}
         <HStack w='full'>
-          <AvatarGroup size='sm' max={3}>
-            <Avatar name='Ryan Florence' src='https://bit.ly/ryan-florence' />
-            <Avatar name='Segun Adebayo' src='https://bit.ly/sage-adebayo' />
-            <Avatar name='Kent Dodds' src='https://bit.ly/kent-c-dodds' />
-            <Avatar name='Prosper Otemuyiwa' src='https://bit.ly/prosper-baba' />
-            <Avatar name='Christian Nwamba' src='https://bit.ly/code-beast' />
-          </AvatarGroup>
-          {comments && comments?.length > 0 && (
-            <Button marginLeft='auto !important' variant='link' colorScheme='gray' onClick={toggleCommentsVisibility}>
-              {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
-            </Button>
-          )}
           {likes && likes?.length > 0 && (
-            <Text ml={3}>
+            <Text fontSize='sm'>
               {likes.length} {likes.length === 1 ? 'like' : 'likes'}
             </Text>
           )}
           {shares && shares.length > 0 && (
-            <Text ml={3}>
+            <Text fontSize='sm' ml={3}>
               {shares.length} {shares.length === 1 ? 'share' : 'shares'}
             </Text>
+          )}
+          {comments && comments?.length > 0 && (
+            <Button
+              marginLeft='auto !important'
+              variant='link'
+              colorScheme='gray'
+              fontSize='sm'
+              onClick={toggleCommentsVisibility}
+            >
+              {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+            </Button>
           )}
         </HStack>
         <Box w='full'>

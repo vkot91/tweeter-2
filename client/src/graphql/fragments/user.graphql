@@ -8,8 +8,8 @@ fragment RegularUser on User {
   email
   bio
   phone
-  password
   avatar
   isEmailConfirmed
   lastSeen
+  password
 }

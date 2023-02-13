@@ -5,12 +5,9 @@ import { ToastTypes } from 'types';
 import { useActiveNotification } from 'context/active-notification-context';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES_ENUM } from 'utils/constants/routes';
+import { PostReactionToast } from 'components/Toasts/PostReaction';
 
-interface Props {
-  toastType: ToastTypes;
-}
-
-export const useCustomToast = ({ toastType }: Props) => {
+export const useCustomToast = () => {
   const { handleSetActiveNotificationId } = useActiveNotification();
   const toast = useToast();
   const toastIdRef = useRef<ToastId>();
@@ -32,15 +29,17 @@ export const useCustomToast = ({ toastType }: Props) => {
 
   const addToast = useCallback(
     ({
-      title,
-      description,
-      avatar,
+      owner,
+      type,
       id,
     }: {
-      title: string;
-      description: string;
-      avatar?: string | null;
+      owner: {
+        avatar: string | null | undefined;
+        firstName: string;
+        secondName: string;
+      };
       id: number;
+      type: ToastTypes;
     }) => {
       toastIdRef.current = toast({
         duration: 5000,
@@ -48,16 +47,30 @@ export const useCustomToast = ({ toastType }: Props) => {
         variant: 'top-accent',
         position: 'top-right',
         render: () => {
-          switch (toastType) {
+          switch (type) {
+            case ToastTypes.FriendRequestAccepted:
             case ToastTypes.NewFriendRequest: {
               return (
                 <FriendRequestToast
-                  onTostClose={closeToast}
-                  firstName={title}
-                  secondName={description}
-                  avatar={avatar || undefined}
+                  owner={owner}
+                  type={type}
                   id={id}
                   onClick={handleSetActiveNotification}
+                  onToastClose={closeToast}
+                />
+              );
+            }
+
+            case ToastTypes.PostComment:
+            case ToastTypes.PostShare:
+            case ToastTypes.PostLike: {
+              return (
+                <PostReactionToast
+                  owner={owner}
+                  type={type}
+                  id={id}
+                  onClick={handleSetActiveNotification}
+                  onToastClose={closeToast}
                 />
               );
             }
@@ -65,7 +78,7 @@ export const useCustomToast = ({ toastType }: Props) => {
         },
       });
     },
-    [closeToast, toast, toastType, handleSetActiveNotification],
+    [toast, handleSetActiveNotification, closeToast],
   );
 
   return {

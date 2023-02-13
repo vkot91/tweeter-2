@@ -1,0 +1,16 @@
+subscription PostMutated($userId: Int!) {
+  postMutated(userId: $userId) {
+    mutation
+    node {
+      ... on Like {
+        ...RegularLike
+      }
+      ... on Share {
+        ...RegularShare
+      }
+      ... on Comment {
+        ...RegularComment
+      }
+    }
+  }
+}

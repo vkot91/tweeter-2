@@ -1,6 +1,16 @@
 fragment RegularLike on Like {
   id
-  createdAt
   updatedAt
   ownerId
+  checked
+  owner {
+    firstName
+    secondName
+    avatar
+    id
+  }
+  post {
+    id
+    description
+  }
 }

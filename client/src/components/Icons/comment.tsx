@@ -1,8 +1,9 @@
-import { Icon, IconProps } from '@chakra-ui/react';
+import { Icon } from '@chakra-ui/react';
+import { IconProps } from './types';
 
-export const CommentIcon = ({ color }: IconProps) => {
+export const CommentIcon = ({ color, w = 6, h = 6 }: IconProps) => {
   return (
-    <Icon w={6} h={6} color={color} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>
+    <Icon w={w} h={h} color={color} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>
       <rect width='539' height='176' x='-382' y='-72' fill='currentColor' display='none' />
       <path
         fill='currentColor'

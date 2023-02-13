@@ -14,23 +14,19 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Date: any;
   Upload: any;
 };
 
-export enum ActionType {
-  All = 'all',
-  Friends = 'friends',
-  Owner = 'owner'
-}
-
 export type Comment = {
   __typename?: 'Comment';
-  createdAt: Scalars['String'];
+  checked: Scalars['Boolean'];
   id: Scalars['Int'];
   owner: User;
   ownerId: Scalars['Int'];
+  post: Post;
   text: Scalars['String'];
-  updatedAt?: Maybe<Scalars['String']>;
+  updatedAt: Scalars['Date'];
 };
 
 export type CreateCommentInput = {
@@ -42,9 +38,18 @@ export type CreateFriendshipInput = {
   friend_id: Scalars['Int'];
 };
 
+export type CreateMessageInput = {
+  roomId: Scalars['Int'];
+  text: Scalars['String'];
+};
+
 export type CreatePostInput = {
   description: Scalars['String'];
   file?: InputMaybe<Scalars['Upload']>;
+};
+
+export type CreateRoomInput = {
+  participantId: Scalars['Int'];
 };
 
 export type CreateUserInput = {
@@ -58,20 +63,32 @@ export type CreateUserInput = {
 export type Friendship = {
   __typename?: 'Friendship';
   attemptsCount: Scalars['Int'];
-  createdAt: Scalars['String'];
   friend: User;
   friend_id: Scalars['Int'];
   id: Scalars['Int'];
   requestCreator: Scalars['Boolean'];
+  requestCreatorInfo?: Maybe<User>;
   status: Status;
-  updatedAt: Scalars['String'];
+  updatedAt: Scalars['Date'];
 };
 
 export type FriendshipMutatedPayload = {
   __typename?: 'FriendshipMutatedPayload';
-  mutation: MutationType;
+  mutation: FriendshipMutationType;
   node: Friendship;
 };
+
+export enum FriendshipMutationType {
+  Created = 'CREATED',
+  Deleted = 'DELETED',
+  Updated = 'UPDATED'
+}
+
+export enum GetPostsActionType {
+  All = 'all',
+  Friends = 'friends',
+  Owner = 'owner'
+}
 
 export type GetUserInput = {
   email?: InputMaybe<Scalars['String']>;
@@ -81,16 +98,26 @@ export type GetUserInput = {
 
 export type Like = {
   __typename?: 'Like';
-  createdAt: Scalars['String'];
+  checked: Scalars['Boolean'];
   id: Scalars['Int'];
   owner: User;
   ownerId: Scalars['Int'];
-  updatedAt?: Maybe<Scalars['String']>;
+  post: Post;
+  updatedAt: Scalars['Date'];
 };
 
 export type LoginInput = {
   email: Scalars['String'];
   password: Scalars['String'];
+};
+
+export type Message = {
+  __typename?: 'Message';
+  id: Scalars['Int'];
+  owner: User;
+  ownerId: Scalars['Int'];
+  text: Scalars['String'];
+  updatedAt: Scalars['Date'];
 };
 
 export type Mutation = {
@@ -99,7 +126,9 @@ export type Mutation = {
   createComment: Comment;
   createFriendship: Friendship;
   createLike: Like;
+  createMessage: Message;
   createPost: Post;
+  createRoom: Room;
   createShare: Share;
   forgotPassword?: Maybe<Scalars['Boolean']>;
   login: UserResponse;
@@ -107,12 +136,16 @@ export type Mutation = {
   removeComment?: Maybe<Scalars['Boolean']>;
   removeFriendship: Friendship;
   removeLike: Scalars['Boolean'];
+  removeMessage: Scalars['Boolean'];
   removePost: Scalars['Boolean'];
+  removeRoom: Scalars['Boolean'];
   removeShare: Scalars['Boolean'];
   removeUser?: Maybe<User>;
   restorePassword: UserResponse;
   updateCreator: Friendship;
+  updateMessage: Message;
   updatePost: Post;
+  updateReaction: Scalars['Boolean'];
   updateStatus: Scalars['Boolean'];
   updateUser: User;
 };
@@ -138,8 +171,18 @@ export type MutationCreateLikeArgs = {
 };
 
 
+export type MutationCreateMessageArgs = {
+  createMessageInput: CreateMessageInput;
+};
+
+
 export type MutationCreatePostArgs = {
   createPostInput: CreatePostInput;
+};
+
+
+export type MutationCreateRoomArgs = {
+  createRoomInput: CreateRoomInput;
 };
 
 
@@ -178,7 +221,17 @@ export type MutationRemoveLikeArgs = {
 };
 
 
+export type MutationRemoveMessageArgs = {
+  id: Scalars['Int'];
+};
+
+
 export type MutationRemovePostArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type MutationRemoveRoomArgs = {
   id: Scalars['Int'];
 };
 
@@ -203,8 +256,18 @@ export type MutationUpdateCreatorArgs = {
 };
 
 
+export type MutationUpdateMessageArgs = {
+  updateMessageInput: UpdateMessageInput;
+};
+
+
 export type MutationUpdatePostArgs = {
   updatePostInput: UpdatePostInput;
+};
+
+
+export type MutationUpdateReactionArgs = {
+  updateReactionInput: UpdateReactionInput;
 };
 
 
@@ -217,10 +280,19 @@ export type MutationUpdateUserArgs = {
   updateUserInput: UpdateUserInput;
 };
 
-export enum MutationType {
-  Created = 'CREATED',
-  Deleted = 'DELETED',
-  Updated = 'UPDATED'
+export type Notification = {
+  __typename?: 'Notification';
+  nodes?: Maybe<Array<Maybe<NotificationNode>>>;
+  type?: Maybe<NotificationType>;
+};
+
+export type NotificationNode = Comment | Friendship | Like | Share;
+
+export enum NotificationType {
+  Comment = 'Comment',
+  Friendship = 'Friendship',
+  Like = 'Like',
+  Share = 'Share'
 }
 
 export type PaginatedPostsResponse = {
@@ -231,7 +303,7 @@ export type PaginatedPostsResponse = {
 };
 
 export type PaginationPostsInput = {
-  action?: InputMaybe<ActionType>;
+  action?: InputMaybe<GetPostsActionType>;
   activePage?: InputMaybe<Scalars['Int']>;
   ownerId: Scalars['Int'];
   take?: InputMaybe<Scalars['Int']>;
@@ -245,23 +317,44 @@ export type Payload = {
 export type Post = {
   __typename?: 'Post';
   comments?: Maybe<Array<Comment>>;
-  createdAt: Scalars['String'];
   description: Scalars['String'];
   id: Scalars['Int'];
   image?: Maybe<Scalars['String']>;
   likes?: Maybe<Array<Like>>;
   owner: User;
   shares?: Maybe<Array<Share>>;
-  updatedAt?: Maybe<Scalars['String']>;
+  updatedAt: Scalars['Date'];
 };
+
+export type PostMutatedNode = Comment | Like | Share;
+
+export type PostMutatedPayload = {
+  __typename?: 'PostMutatedPayload';
+  mutation: PostMutationType;
+  node: PostMutatedNode;
+};
+
+export enum PostMutationType {
+  CommentCreated = 'COMMENT_CREATED',
+  CommentDeleted = 'COMMENT_DELETED',
+  LikeCreated = 'LIKE_CREATED',
+  LikeDeleted = 'LIKE_DELETED',
+  ShareCreated = 'SHARE_CREATED',
+  ShareDeleted = 'SHARE_DELETED'
+}
 
 export type Query = {
   __typename?: 'Query';
   friendsRequests: Array<Maybe<Friendship>>;
   friendships?: Maybe<Array<Maybe<Friendship>>>;
   me: User;
+  message?: Maybe<Message>;
+  messages: Array<Maybe<Message>>;
+  notifications: Array<Maybe<Notification>>;
   post?: Maybe<Post>;
   posts: PaginatedPostsResponse;
+  room?: Maybe<Room>;
+  rooms: Array<Maybe<Room>>;
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -269,6 +362,11 @@ export type Query = {
 
 export type QueryFriendshipsArgs = {
   userId: Scalars['Int'];
+};
+
+
+export type QueryMessageArgs = {
+  id: Scalars['Int'];
 };
 
 
@@ -282,22 +380,42 @@ export type QueryPostsArgs = {
 };
 
 
+export type QueryRoomArgs = {
+  participantId: Scalars['Int'];
+};
+
+
 export type QueryUserArgs = {
   getUserInput?: InputMaybe<GetUserInput>;
 };
+
+export enum ReactionEntities {
+  Comment = 'Comment',
+  Like = 'Like',
+  Share = 'Share'
+}
 
 export type RestorePasswordInput = {
   email: Scalars['String'];
   password: Scalars['String'];
 };
 
+export type Room = {
+  __typename?: 'Room';
+  id: Scalars['Int'];
+  messages: Array<Maybe<Message>>;
+  participants: Array<Maybe<User>>;
+  updatedAt: Scalars['Date'];
+};
+
 export type Share = {
   __typename?: 'Share';
-  createdAt: Scalars['String'];
+  checked: Scalars['Boolean'];
   id: Scalars['Int'];
   owner: User;
   ownerId: Scalars['Int'];
-  updatedAt?: Maybe<Scalars['String']>;
+  post: Post;
+  updatedAt: Scalars['Date'];
 };
 
 export enum Status {
@@ -311,6 +429,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   friendshipMutated?: Maybe<FriendshipMutatedPayload>;
   lastSeenUpdated?: Maybe<Payload>;
+  postMutated: PostMutatedPayload;
 };
 
 
@@ -323,8 +442,17 @@ export type SubscriptionLastSeenUpdatedArgs = {
   userId: Scalars['Int'];
 };
 
+
+export type SubscriptionPostMutatedArgs = {
+  userId: Scalars['Int'];
+};
+
 export type UpdateCreatorInput = {
   friend_id: Scalars['Int'];
+  id: Scalars['Int'];
+};
+
+export type UpdateMessageInput = {
   id: Scalars['Int'];
 };
 
@@ -332,6 +460,12 @@ export type UpdatePostInput = {
   description?: InputMaybe<Scalars['String']>;
   file?: InputMaybe<Scalars['Upload']>;
   id: Scalars['Int'];
+};
+
+export type UpdateReactionInput = {
+  checked: Scalars['Boolean'];
+  id: Scalars['Int'];
+  type: ReactionEntities;
 };
 
 export type UpdateStatusInput = {
@@ -345,7 +479,7 @@ export type UpdateUserInput = {
   email?: InputMaybe<Scalars['String']>;
   firstName?: InputMaybe<Scalars['String']>;
   id: Scalars['Int'];
-  lastSeen?: InputMaybe<Scalars['String']>;
+  lastSeen?: InputMaybe<Scalars['Date']>;
   location?: InputMaybe<Scalars['String']>;
   password?: InputMaybe<Scalars['String']>;
   phone?: InputMaybe<Scalars['String']>;
@@ -362,7 +496,7 @@ export type User = {
   friends?: Maybe<Array<Friendship>>;
   id: Scalars['Int'];
   isEmailConfirmed?: Maybe<Scalars['Boolean']>;
-  lastSeen: Scalars['String'];
+  lastSeen: Scalars['Date'];
   location?: Maybe<Scalars['String']>;
   password: Scalars['String'];
   phone?: Maybe<Scalars['String']>;
@@ -396,66 +530,71 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } };
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } };
 
 export type RegisterMutationVariables = Exact<{
   createUserInput: CreateUserInput;
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } };
 
 export type RestorePasswordMutationVariables = Exact<{
   restorePasswordInput: RestorePasswordInput;
 }>;
 
 
-export type RestorePasswordMutation = { __typename?: 'Mutation', restorePassword: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } };
+export type RestorePasswordMutation = { __typename?: 'Mutation', restorePassword: { __typename?: 'UserResponse', token?: string | null, user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } };
 
-export type RegularCommentFragment = { __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } };
+export type RegularCommentFragment = { __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } };
 
-export type RegularFriendshipFragment = { __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } };
+export type RegularFriendshipFragment = { __typename?: 'Friendship', id: number, friend_id: number, status: Status, updatedAt: any, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, requestCreatorInfo?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null };
 
-export type RegularLikeFragment = { __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number };
+export type RegularLikeFragment = { __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } };
 
-export type RegularPostFragment = { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null };
+export type RegularPostFragment = { __typename?: 'Post', id: number, description: string, image?: string | null, updatedAt: any, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, likes?: Array<{ __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, shares?: Array<{ __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null };
 
-export type RegularShareFragment = { __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number };
+export type RegularShareFragment = { __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } };
 
-export type RegularUserFragment = { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string };
+export type RegularUserFragment = { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string };
+
+export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationsQuery = { __typename?: 'Query', notifications: Array<{ __typename?: 'Notification', type?: NotificationType | null, nodes?: Array<{ __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } | { __typename?: 'Friendship', id: number, friend_id: number, status: Status, updatedAt: any, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, requestCreatorInfo?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } | { __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } | { __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } | null> | null } | null> };
 
 export type CreateCommentMutationVariables = Exact<{
   createCommentInput: CreateCommentInput;
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } } };
+export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } };
 
 export type CreateLikeMutationVariables = Exact<{
   postId: Scalars['Int'];
 }>;
 
 
-export type CreateLikeMutation = { __typename?: 'Mutation', createLike: { __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number } };
+export type CreateLikeMutation = { __typename?: 'Mutation', createLike: { __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } };
 
 export type CreatePostMutationVariables = Exact<{
   createPostInput: CreatePostInput;
 }>;
 
 
-export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null } };
+export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: number, description: string, image?: string | null, updatedAt: any, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, likes?: Array<{ __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, shares?: Array<{ __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null } };
 
 export type CreateShareMutationVariables = Exact<{
   postId: Scalars['Int'];
 }>;
 
 
-export type CreateShareMutation = { __typename?: 'Mutation', createShare: { __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number } };
+export type CreateShareMutation = { __typename?: 'Mutation', createShare: { __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } };
 
 export type RemoveCommentMutationVariables = Exact<{
   id: Scalars['Int'];
@@ -490,14 +629,28 @@ export type UpdatePostMutationVariables = Exact<{
 }>;
 
 
-export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null } };
+export type UpdatePostMutation = { __typename?: 'Mutation', updatePost: { __typename?: 'Post', id: number, description: string, image?: string | null, updatedAt: any, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, likes?: Array<{ __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, shares?: Array<{ __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null } };
+
+export type UpdateReactionMutationVariables = Exact<{
+  updateReactionInput: UpdateReactionInput;
+}>;
+
+
+export type UpdateReactionMutation = { __typename?: 'Mutation', updateReaction: boolean };
 
 export type PostsQueryVariables = Exact<{
   paginationPostsInput: PaginationPostsInput;
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPostsResponse', totalCount: number, hasMore: boolean, items: Array<{ __typename?: 'Post', id: number, description: string, image?: string | null, createdAt: string, updatedAt?: string | null, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string }, likes?: Array<{ __typename?: 'Like', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, shares?: Array<{ __typename?: 'Share', id: number, createdAt: string, updatedAt?: string | null, ownerId: number }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, createdAt: string, ownerId: number, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number } }> | null }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPostsResponse', totalCount: number, hasMore: boolean, items: Array<{ __typename?: 'Post', id: number, description: string, image?: string | null, updatedAt: any, owner: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, likes?: Array<{ __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, shares?: Array<{ __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null, comments?: Array<{ __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } }> | null }> } };
+
+export type PostMutatedSubscriptionVariables = Exact<{
+  userId: Scalars['Int'];
+}>;
+
+
+export type PostMutatedSubscription = { __typename?: 'Subscription', postMutated: { __typename?: 'PostMutatedPayload', mutation: PostMutationType, node: { __typename?: 'Comment', id: number, text: string, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } | { __typename?: 'Like', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } | { __typename?: 'Share', id: number, updatedAt: any, ownerId: number, checked: boolean, owner: { __typename?: 'User', firstName: string, secondName: string, avatar?: string | null, id: number }, post: { __typename?: 'Post', id: number, description: string } } } };
 
 export type CreateFriendshipMutationVariables = Exact<{
   createFriendshipInput: CreateFriendshipInput;
@@ -532,61 +685,41 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } };
 
 export type FriendsRequestsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type FriendsRequestsQuery = { __typename?: 'Query', friendsRequests: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } | null> };
+export type FriendsRequestsQuery = { __typename?: 'Query', friendsRequests: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, updatedAt: any, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, requestCreatorInfo?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } | null> };
 
 export type FriendshipsQueryVariables = Exact<{
   userId: Scalars['Int'];
 }>;
 
 
-export type FriendshipsQuery = { __typename?: 'Query', friendships?: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } | null> | null };
+export type FriendshipsQuery = { __typename?: 'Query', friendships?: Array<{ __typename?: 'Friendship', id: number, friend_id: number, status: Status, updatedAt: any, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, requestCreatorInfo?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } | null> | null };
 
 export type UserQueryVariables = Exact<{
   getUserInput?: InputMaybe<GetUserInput>;
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } };
+export type UserQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } };
 
 export type FriendshipMutatedSubscriptionVariables = Exact<{
   userId: Scalars['Int'];
 }>;
 
 
-export type FriendshipMutatedSubscription = { __typename?: 'Subscription', friendshipMutated?: { __typename?: 'FriendshipMutatedPayload', mutation: MutationType, node: { __typename?: 'Friendship', id: number, friend_id: number, status: Status, createdAt: string, updatedAt: string, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, avatar?: string | null, username: string, email: string, lastSeen: string } } } | null };
+export type FriendshipMutatedSubscription = { __typename?: 'Subscription', friendshipMutated?: { __typename?: 'FriendshipMutatedPayload', mutation: FriendshipMutationType, node: { __typename?: 'Friendship', id: number, friend_id: number, status: Status, updatedAt: any, attemptsCount: number, requestCreator: boolean, friend: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string }, requestCreatorInfo?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } } | null };
 
 export type LastSeenUpdatedSubscriptionVariables = Exact<{
   userId: Scalars['Int'];
 }>;
 
 
-export type LastSeenUpdatedSubscription = { __typename?: 'Subscription', lastSeenUpdated?: { __typename?: 'Payload', user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, password: string, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: string } | null } | null };
+export type LastSeenUpdatedSubscription = { __typename?: 'Subscription', lastSeenUpdated?: { __typename?: 'Payload', user?: { __typename?: 'User', id: number, firstName: string, secondName: string, username: string, bio?: string | null, location?: string | null, email: string, phone?: string | null, avatar?: string | null, isEmailConfirmed?: boolean | null, lastSeen: any, password: string } | null } | null };
 
-export const RegularFriendshipFragmentDoc = gql`
-    fragment RegularFriendship on Friendship {
-  id
-  friend {
-    id
-    firstName
-    secondName
-    avatar
-    username
-    email
-    lastSeen
-  }
-  friend_id
-  status
-  createdAt
-  updatedAt
-  attemptsCount
-  requestCreator
-}
-    `;
 export const RegularUserFragmentDoc = gql`
     fragment RegularUser on User {
   id
@@ -598,39 +731,80 @@ export const RegularUserFragmentDoc = gql`
   email
   bio
   phone
-  password
   avatar
   isEmailConfirmed
   lastSeen
+  password
 }
     `;
+export const RegularFriendshipFragmentDoc = gql`
+    fragment RegularFriendship on Friendship {
+  id
+  friend {
+    ...RegularUser
+  }
+  friend_id
+  status
+  updatedAt
+  attemptsCount
+  requestCreator
+  requestCreatorInfo {
+    ...RegularUser
+  }
+}
+    ${RegularUserFragmentDoc}`;
 export const RegularLikeFragmentDoc = gql`
     fragment RegularLike on Like {
   id
-  createdAt
   updatedAt
   ownerId
+  checked
+  owner {
+    firstName
+    secondName
+    avatar
+    id
+  }
+  post {
+    id
+    description
+  }
 }
     `;
 export const RegularShareFragmentDoc = gql`
     fragment RegularShare on Share {
   id
-  createdAt
   updatedAt
   ownerId
+  checked
+  owner {
+    firstName
+    secondName
+    avatar
+    id
+  }
+  post {
+    id
+    description
+  }
 }
     `;
 export const RegularCommentFragmentDoc = gql`
     fragment RegularComment on Comment {
   id
   text
-  createdAt
+  updatedAt
   ownerId
+  checked
   owner {
     firstName
     secondName
     avatar
     id
+  }
+  post {
+    id
+    description
   }
 }
     `;
@@ -639,7 +813,6 @@ export const RegularPostFragmentDoc = gql`
   id
   description
   image
-  createdAt
   updatedAt
   owner {
     ...RegularUser
@@ -859,6 +1032,57 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const NotificationsDocument = gql`
+    query Notifications {
+  notifications {
+    type
+    nodes {
+      ... on Like {
+        ...RegularLike
+      }
+      ... on Share {
+        ...RegularShare
+      }
+      ... on Friendship {
+        ...RegularFriendship
+      }
+      ... on Comment {
+        ...RegularComment
+      }
+    }
+  }
+}
+    ${RegularLikeFragmentDoc}
+${RegularShareFragmentDoc}
+${RegularFriendshipFragmentDoc}
+${RegularCommentFragmentDoc}`;
+
+/**
+ * __useNotificationsQuery__
+ *
+ * To run a query within a React component, call `useNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNotificationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNotificationsQuery(baseOptions?: Apollo.QueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+      }
+export function useNotificationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<NotificationsQuery, NotificationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<NotificationsQuery, NotificationsQueryVariables>(NotificationsDocument, options);
+        }
+export type NotificationsQueryHookResult = ReturnType<typeof useNotificationsQuery>;
+export type NotificationsLazyQueryHookResult = ReturnType<typeof useNotificationsLazyQuery>;
+export type NotificationsQueryResult = Apollo.QueryResult<NotificationsQuery, NotificationsQueryVariables>;
 export const CreateCommentDocument = gql`
     mutation CreateComment($createCommentInput: CreateCommentInput!) {
   createComment(createCommentInput: $createCommentInput) {
@@ -1148,6 +1372,37 @@ export function useUpdatePostMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdatePostMutationHookResult = ReturnType<typeof useUpdatePostMutation>;
 export type UpdatePostMutationResult = Apollo.MutationResult<UpdatePostMutation>;
 export type UpdatePostMutationOptions = Apollo.BaseMutationOptions<UpdatePostMutation, UpdatePostMutationVariables>;
+export const UpdateReactionDocument = gql`
+    mutation UpdateReaction($updateReactionInput: UpdateReactionInput!) {
+  updateReaction(updateReactionInput: $updateReactionInput)
+}
+    `;
+export type UpdateReactionMutationFn = Apollo.MutationFunction<UpdateReactionMutation, UpdateReactionMutationVariables>;
+
+/**
+ * __useUpdateReactionMutation__
+ *
+ * To run a mutation, you first call `useUpdateReactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateReactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateReactionMutation, { data, loading, error }] = useUpdateReactionMutation({
+ *   variables: {
+ *      updateReactionInput: // value for 'updateReactionInput'
+ *   },
+ * });
+ */
+export function useUpdateReactionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateReactionMutation, UpdateReactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateReactionMutation, UpdateReactionMutationVariables>(UpdateReactionDocument, options);
+      }
+export type UpdateReactionMutationHookResult = ReturnType<typeof useUpdateReactionMutation>;
+export type UpdateReactionMutationResult = Apollo.MutationResult<UpdateReactionMutation>;
+export type UpdateReactionMutationOptions = Apollo.BaseMutationOptions<UpdateReactionMutation, UpdateReactionMutationVariables>;
 export const PostsDocument = gql`
     query Posts($paginationPostsInput: PaginationPostsInput!) {
   posts(paginationPostsInput: $paginationPostsInput) {
@@ -1187,6 +1442,49 @@ export function usePostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Post
 export type PostsQueryHookResult = ReturnType<typeof usePostsQuery>;
 export type PostsLazyQueryHookResult = ReturnType<typeof usePostsLazyQuery>;
 export type PostsQueryResult = Apollo.QueryResult<PostsQuery, PostsQueryVariables>;
+export const PostMutatedDocument = gql`
+    subscription PostMutated($userId: Int!) {
+  postMutated(userId: $userId) {
+    mutation
+    node {
+      ... on Like {
+        ...RegularLike
+      }
+      ... on Share {
+        ...RegularShare
+      }
+      ... on Comment {
+        ...RegularComment
+      }
+    }
+  }
+}
+    ${RegularLikeFragmentDoc}
+${RegularShareFragmentDoc}
+${RegularCommentFragmentDoc}`;
+
+/**
+ * __usePostMutatedSubscription__
+ *
+ * To run a query within a React component, call `usePostMutatedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `usePostMutatedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePostMutatedSubscription({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function usePostMutatedSubscription(baseOptions: Apollo.SubscriptionHookOptions<PostMutatedSubscription, PostMutatedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<PostMutatedSubscription, PostMutatedSubscriptionVariables>(PostMutatedDocument, options);
+      }
+export type PostMutatedSubscriptionHookResult = ReturnType<typeof usePostMutatedSubscription>;
+export type PostMutatedSubscriptionResult = Apollo.SubscriptionResult<PostMutatedSubscription>;
 export const CreateFriendshipDocument = gql`
     mutation CreateFriendship($createFriendshipInput: CreateFriendshipInput!) {
   createFriendship(createFriendshipInput: $createFriendshipInput) {
@@ -1525,23 +1823,24 @@ export function useLastSeenUpdatedSubscription(baseOptions: Apollo.SubscriptionH
       }
 export type LastSeenUpdatedSubscriptionHookResult = ReturnType<typeof useLastSeenUpdatedSubscription>;
 export type LastSeenUpdatedSubscriptionResult = Apollo.SubscriptionResult<LastSeenUpdatedSubscription>;
-export type CommentKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'text' | 'updatedAt' | CommentKeySpecifier)[];
+export type CommentKeySpecifier = ('checked' | 'id' | 'owner' | 'ownerId' | 'post' | 'text' | 'updatedAt' | CommentKeySpecifier)[];
 export type CommentFieldPolicy = {
-	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	checked?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	owner?: FieldPolicy<any> | FieldReadFunction<any>,
 	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	post?: FieldPolicy<any> | FieldReadFunction<any>,
 	text?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type FriendshipKeySpecifier = ('attemptsCount' | 'createdAt' | 'friend' | 'friend_id' | 'id' | 'requestCreator' | 'status' | 'updatedAt' | FriendshipKeySpecifier)[];
+export type FriendshipKeySpecifier = ('attemptsCount' | 'friend' | 'friend_id' | 'id' | 'requestCreator' | 'requestCreatorInfo' | 'status' | 'updatedAt' | FriendshipKeySpecifier)[];
 export type FriendshipFieldPolicy = {
 	attemptsCount?: FieldPolicy<any> | FieldReadFunction<any>,
-	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
 	friend?: FieldPolicy<any> | FieldReadFunction<any>,
 	friend_id?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	requestCreator?: FieldPolicy<any> | FieldReadFunction<any>,
+	requestCreatorInfo?: FieldPolicy<any> | FieldReadFunction<any>,
 	status?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
@@ -1550,21 +1849,32 @@ export type FriendshipMutatedPayloadFieldPolicy = {
 	mutation?: FieldPolicy<any> | FieldReadFunction<any>,
 	node?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type LikeKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'updatedAt' | LikeKeySpecifier)[];
+export type LikeKeySpecifier = ('checked' | 'id' | 'owner' | 'ownerId' | 'post' | 'updatedAt' | LikeKeySpecifier)[];
 export type LikeFieldPolicy = {
-	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	checked?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	owner?: FieldPolicy<any> | FieldReadFunction<any>,
 	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	post?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type MutationKeySpecifier = ('confirm' | 'createComment' | 'createFriendship' | 'createLike' | 'createPost' | 'createShare' | 'forgotPassword' | 'login' | 'register' | 'removeComment' | 'removeFriendship' | 'removeLike' | 'removePost' | 'removeShare' | 'removeUser' | 'restorePassword' | 'updateCreator' | 'updatePost' | 'updateStatus' | 'updateUser' | MutationKeySpecifier)[];
+export type MessageKeySpecifier = ('id' | 'owner' | 'ownerId' | 'text' | 'updatedAt' | MessageKeySpecifier)[];
+export type MessageFieldPolicy = {
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	owner?: FieldPolicy<any> | FieldReadFunction<any>,
+	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	text?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type MutationKeySpecifier = ('confirm' | 'createComment' | 'createFriendship' | 'createLike' | 'createMessage' | 'createPost' | 'createRoom' | 'createShare' | 'forgotPassword' | 'login' | 'register' | 'removeComment' | 'removeFriendship' | 'removeLike' | 'removeMessage' | 'removePost' | 'removeRoom' | 'removeShare' | 'removeUser' | 'restorePassword' | 'updateCreator' | 'updateMessage' | 'updatePost' | 'updateReaction' | 'updateStatus' | 'updateUser' | MutationKeySpecifier)[];
 export type MutationFieldPolicy = {
 	confirm?: FieldPolicy<any> | FieldReadFunction<any>,
 	createComment?: FieldPolicy<any> | FieldReadFunction<any>,
 	createFriendship?: FieldPolicy<any> | FieldReadFunction<any>,
 	createLike?: FieldPolicy<any> | FieldReadFunction<any>,
+	createMessage?: FieldPolicy<any> | FieldReadFunction<any>,
 	createPost?: FieldPolicy<any> | FieldReadFunction<any>,
+	createRoom?: FieldPolicy<any> | FieldReadFunction<any>,
 	createShare?: FieldPolicy<any> | FieldReadFunction<any>,
 	forgotPassword?: FieldPolicy<any> | FieldReadFunction<any>,
 	login?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -1572,14 +1882,23 @@ export type MutationFieldPolicy = {
 	removeComment?: FieldPolicy<any> | FieldReadFunction<any>,
 	removeFriendship?: FieldPolicy<any> | FieldReadFunction<any>,
 	removeLike?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeMessage?: FieldPolicy<any> | FieldReadFunction<any>,
 	removePost?: FieldPolicy<any> | FieldReadFunction<any>,
+	removeRoom?: FieldPolicy<any> | FieldReadFunction<any>,
 	removeShare?: FieldPolicy<any> | FieldReadFunction<any>,
 	removeUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	restorePassword?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateCreator?: FieldPolicy<any> | FieldReadFunction<any>,
+	updateMessage?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatePost?: FieldPolicy<any> | FieldReadFunction<any>,
+	updateReaction?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateStatus?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type NotificationKeySpecifier = ('nodes' | 'type' | NotificationKeySpecifier)[];
+export type NotificationFieldPolicy = {
+	nodes?: FieldPolicy<any> | FieldReadFunction<any>,
+	type?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type PaginatedPostsResponseKeySpecifier = ('hasMore' | 'items' | 'totalCount' | PaginatedPostsResponseKeySpecifier)[];
 export type PaginatedPostsResponseFieldPolicy = {
@@ -1591,10 +1910,9 @@ export type PayloadKeySpecifier = ('user' | PayloadKeySpecifier)[];
 export type PayloadFieldPolicy = {
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type PostKeySpecifier = ('comments' | 'createdAt' | 'description' | 'id' | 'image' | 'likes' | 'owner' | 'shares' | 'updatedAt' | PostKeySpecifier)[];
+export type PostKeySpecifier = ('comments' | 'description' | 'id' | 'image' | 'likes' | 'owner' | 'shares' | 'updatedAt' | PostKeySpecifier)[];
 export type PostFieldPolicy = {
 	comments?: FieldPolicy<any> | FieldReadFunction<any>,
-	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
 	description?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	image?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -1603,28 +1921,47 @@ export type PostFieldPolicy = {
 	shares?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('friendsRequests' | 'friendships' | 'me' | 'post' | 'posts' | 'user' | 'users' | QueryKeySpecifier)[];
+export type PostMutatedPayloadKeySpecifier = ('mutation' | 'node' | PostMutatedPayloadKeySpecifier)[];
+export type PostMutatedPayloadFieldPolicy = {
+	mutation?: FieldPolicy<any> | FieldReadFunction<any>,
+	node?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type QueryKeySpecifier = ('friendsRequests' | 'friendships' | 'me' | 'message' | 'messages' | 'notifications' | 'post' | 'posts' | 'room' | 'rooms' | 'user' | 'users' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	friendsRequests?: FieldPolicy<any> | FieldReadFunction<any>,
 	friendships?: FieldPolicy<any> | FieldReadFunction<any>,
 	me?: FieldPolicy<any> | FieldReadFunction<any>,
+	message?: FieldPolicy<any> | FieldReadFunction<any>,
+	messages?: FieldPolicy<any> | FieldReadFunction<any>,
+	notifications?: FieldPolicy<any> | FieldReadFunction<any>,
 	post?: FieldPolicy<any> | FieldReadFunction<any>,
 	posts?: FieldPolicy<any> | FieldReadFunction<any>,
+	room?: FieldPolicy<any> | FieldReadFunction<any>,
+	rooms?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>,
 	users?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type ShareKeySpecifier = ('createdAt' | 'id' | 'owner' | 'ownerId' | 'updatedAt' | ShareKeySpecifier)[];
+export type RoomKeySpecifier = ('id' | 'messages' | 'participants' | 'updatedAt' | RoomKeySpecifier)[];
+export type RoomFieldPolicy = {
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	messages?: FieldPolicy<any> | FieldReadFunction<any>,
+	participants?: FieldPolicy<any> | FieldReadFunction<any>,
+	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ShareKeySpecifier = ('checked' | 'id' | 'owner' | 'ownerId' | 'post' | 'updatedAt' | ShareKeySpecifier)[];
 export type ShareFieldPolicy = {
-	createdAt?: FieldPolicy<any> | FieldReadFunction<any>,
+	checked?: FieldPolicy<any> | FieldReadFunction<any>,
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	owner?: FieldPolicy<any> | FieldReadFunction<any>,
 	ownerId?: FieldPolicy<any> | FieldReadFunction<any>,
+	post?: FieldPolicy<any> | FieldReadFunction<any>,
 	updatedAt?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type SubscriptionKeySpecifier = ('friendshipMutated' | 'lastSeenUpdated' | SubscriptionKeySpecifier)[];
+export type SubscriptionKeySpecifier = ('friendshipMutated' | 'lastSeenUpdated' | 'postMutated' | SubscriptionKeySpecifier)[];
 export type SubscriptionFieldPolicy = {
 	friendshipMutated?: FieldPolicy<any> | FieldReadFunction<any>,
-	lastSeenUpdated?: FieldPolicy<any> | FieldReadFunction<any>
+	lastSeenUpdated?: FieldPolicy<any> | FieldReadFunction<any>,
+	postMutated?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type UserKeySpecifier = ('avatar' | 'bio' | 'email' | 'firstName' | 'friends' | 'id' | 'isEmailConfirmed' | 'lastSeen' | 'location' | 'password' | 'phone' | 'posts' | 'secondName' | 'username' | UserKeySpecifier)[];
 export type UserFieldPolicy = {
@@ -1665,9 +2002,17 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | LikeKeySpecifier | (() => undefined | LikeKeySpecifier),
 		fields?: LikeFieldPolicy,
 	},
+	Message?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | MessageKeySpecifier | (() => undefined | MessageKeySpecifier),
+		fields?: MessageFieldPolicy,
+	},
 	Mutation?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | MutationKeySpecifier | (() => undefined | MutationKeySpecifier),
 		fields?: MutationFieldPolicy,
+	},
+	Notification?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | NotificationKeySpecifier | (() => undefined | NotificationKeySpecifier),
+		fields?: NotificationFieldPolicy,
 	},
 	PaginatedPostsResponse?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | PaginatedPostsResponseKeySpecifier | (() => undefined | PaginatedPostsResponseKeySpecifier),
@@ -1681,9 +2026,17 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | PostKeySpecifier | (() => undefined | PostKeySpecifier),
 		fields?: PostFieldPolicy,
 	},
+	PostMutatedPayload?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | PostMutatedPayloadKeySpecifier | (() => undefined | PostMutatedPayloadKeySpecifier),
+		fields?: PostMutatedPayloadFieldPolicy,
+	},
 	Query?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | QueryKeySpecifier | (() => undefined | QueryKeySpecifier),
 		fields?: QueryFieldPolicy,
+	},
+	Room?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | RoomKeySpecifier | (() => undefined | RoomKeySpecifier),
+		fields?: RoomFieldPolicy,
 	},
 	Share?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | ShareKeySpecifier | (() => undefined | ShareKeySpecifier),

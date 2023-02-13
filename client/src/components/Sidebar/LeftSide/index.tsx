@@ -6,8 +6,8 @@ import { SidebarItem } from './Item';
 import { LogoutIcon } from 'components/Icons';
 import { useAuth } from 'context/authed-user-context';
 import { ROUTES_ENUM } from 'utils/constants/routes';
-import { useFriendsRequests } from 'context/friends-requests-context';
 import { replaceProfileLink } from 'utils/helpers/replace-profile-link';
+import { useNotifications } from 'context/notifications-context';
 
 interface SidebarProps extends BoxProps {
   onClose: () => void;
@@ -16,13 +16,13 @@ interface SidebarProps extends BoxProps {
 export const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
   const { handleLogout, authedUser } = useAuth();
 
-  const { friendsRequests } = useFriendsRequests();
+  const { count } = useNotifications();
 
   const links = SIDEBAR_MENU_LINKS.map((link) => {
     return {
       ...link,
       route: link.title === 'Profile' ? replaceProfileLink(authedUser!.username) : link.route,
-      ...(link.route === ROUTES_ENUM.NOTIFICATION && friendsRequests.length && { counter: friendsRequests.length }),
+      ...(link.route === ROUTES_ENUM.NOTIFICATION && count && { counter: count }),
     };
   });
   return (

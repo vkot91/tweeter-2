@@ -16,12 +16,32 @@ import { CircleLoader } from 'components/Loader/Circle';
 import { useFriends } from 'context/friends-context';
 import { formatDate, getSecondsDifferenceBetweenDates } from 'utils/helpers';
 import { replaceProfileLink } from 'utils/helpers/replace-profile-link';
+import { useEffect, useState } from 'react';
 export const FriendsList = () => {
   const { friendships, loading } = useFriends();
+
+  const [filteredFriends, setFilteredFriends] = useState(friendships);
+
+  useEffect(() => {
+    setFilteredFriends(friendships);
+  }, [friendships]);
+
+  const handleSearch = (searchTerm: string) => {
+    const friends = friendships.filter((friendship) =>
+      friendship.friend.firstName.concat(friendship.friend.secondName).toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+    setFilteredFriends(friends);
+  };
+
   return (
     <VStack spacing={7}>
       <InputGroup maxW='xl'>
-        <Input type='text' borderColor='gray.300' placeholder='Search friends!' />
+        <Input
+          type='text'
+          onChange={(e) => handleSearch(e.target.value)}
+          borderColor='gray.300'
+          placeholder='Search friends!'
+        />
         <InputLeftElement pointerEvents='none'>
           <SearchIcon />
         </InputLeftElement>
@@ -34,11 +54,11 @@ export const FriendsList = () => {
       </HStack>
       <VStack w='full' spacing={5}>
         {loading && <CircleLoader size='50px' />}
-        {friendships?.map((friendship) => (
+        {filteredFriends?.map((friendship) => (
           <HStack key={friendship.id} w='full'>
             <Avatar name='K' size='sm' />
             <Text fontWeight='semibold'>
-              <Link as={RouterLink} to={replaceProfileLink(friendship.friend.username)} variant='pure' color='gray.800'>
+              <Link as={RouterLink} to={replaceProfileLink(friendship.friend.username)} variant='pure'>
                 {friendship.friend.firstName} {friendship.friend.secondName}{' '}
               </Link>
             </Text>
@@ -51,11 +71,10 @@ export const FriendsList = () => {
             )}
           </HStack>
         ))}
+        {friendships.length > 0 && filteredFriends.length === 0 && (
+          <Text variant='secondary'>Please update your search term </Text>
+        )}
       </VStack>
     </VStack>
   );
 };
-
-//Online users - list filter by friends (query)
-//New user come to website - mutation update (lastSeen:now) trigger lastSeenMutated
-// ON ui (get new user) and update on the online users list (friends arr get updated too)

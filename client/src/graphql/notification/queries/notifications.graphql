@@ -1,0 +1,19 @@
+query Notifications {
+  notifications {
+    type
+    nodes {
+      ... on Like {
+        ...RegularLike
+      }
+      ... on Share {
+        ...RegularShare
+      }
+      ... on Friendship {
+        ...RegularFriendship
+      }
+      ... on Comment {
+        ...RegularComment
+      }
+    }
+  }
+}

@@ -1,38 +1,35 @@
-import { Avatar, Box, CloseButton, Flex, FlexProps, Text } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
+import { ToastTypes } from 'types';
+import { NotificationToastLayout } from './Layout';
+import { NotificationToastProps } from './types';
 
-interface Props extends Omit<FlexProps, 'id' | 'onClick'> {
-  id: number;
-  firstName: string;
-  secondName: string;
-  avatar?: string;
-  onTostClose: () => void;
-  onClick?: (id: number) => void;
-}
+type ContentType = {
+  [key in ToastTypes]?: {
+    title: string;
+    description: string;
+  };
+};
 
-export const FriendRequestToast = ({ firstName, secondName, avatar, onTostClose, id, onClick }: Props) => {
+const CONTENT: ContentType = {
+  [ToastTypes.NewFriendRequest]: {
+    title: 'New friend request',
+    description: 'want to add you to the friend list',
+  },
+  [ToastTypes.FriendRequestAccepted]: {
+    title: '',
+    description: 'accepted your request',
+  },
+};
+
+export const FriendRequestToast = (props: NotificationToastProps) => {
   return (
-    <Flex
-      position='relative'
-      borderRadius='xl'
-      maxWidth='350px'
-      gap={3}
-      align='center'
-      color='white'
-      p={3}
-      bg='blue.500'
-      cursor='pointer'
-      onClick={() => (onClick ? onClick(id) : null)}
-    >
-      <Avatar size='md' src={avatar} name={firstName} />
-      <Box>
-        <Text fontSize='sm' fontWeight='bold' color='white'>
-          New friend request
-        </Text>
-        <Text fontSize='sm' color='white'>
-          {firstName} {secondName} want to add you to the friend list
-        </Text>
-      </Box>
-      <CloseButton onClick={onTostClose} position={'absolute'} right={3} top={3} size='sm' />
-    </Flex>
+    <NotificationToastLayout {...props}>
+      <Text fontSize='sm' fontWeight='bold' color='white'>
+        {CONTENT[props.type]?.title}
+      </Text>
+      <Text fontSize='sm' color='white'>
+        {props.owner.firstName} {props.owner.secondName} {CONTENT[props.type]?.description}
+      </Text>
+    </NotificationToastLayout>
   );
 };

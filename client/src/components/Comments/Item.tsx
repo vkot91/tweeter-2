@@ -3,11 +3,13 @@ import { Comment, useRemoveCommentMutation } from 'generated/graphql';
 
 import { checkImage, formatDate } from 'utils/helpers';
 import { DeleteIcon } from '@chakra-ui/icons';
+import { useAuth } from 'context/authed-user-context';
 
 type Props = Comment;
 
-export const CommentItem = ({ owner, text, createdAt, id }: Props) => {
+export const CommentItem = ({ owner, text, updatedAt, id }: Props) => {
   const bg = useColorModeValue('bg.light.secondary', 'bg.dark.secondary');
+  const { authedUser } = useAuth();
   const [removeComment, { loading }] = useRemoveCommentMutation();
   const toast = useToast({
     position: 'top-right',
@@ -47,9 +49,11 @@ export const CommentItem = ({ owner, text, createdAt, id }: Props) => {
         <HStack
           justifyContent='space-between'
           _hover={{
-            '.chakra-button': {
-              display: 'block',
-            },
+            ...(authedUser?.id === owner.id && {
+              '.chakra-button': {
+                display: 'block',
+              },
+            }),
           }}
         >
           <VStack alignItems='start'>
@@ -57,7 +61,7 @@ export const CommentItem = ({ owner, text, createdAt, id }: Props) => {
               {owner.firstName} {owner.secondName}
             </Text>
             <Text variant='secondary' fontSize='xs'>
-              {formatDate(createdAt)}
+              {formatDate(updatedAt)}
             </Text>
           </VStack>
           <IconButton

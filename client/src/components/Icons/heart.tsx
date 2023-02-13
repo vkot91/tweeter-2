@@ -1,8 +1,8 @@
 import { Icon } from '@chakra-ui/react';
 import { IconProps } from './types';
 
-export const HeartIcon = ({ color, filled = false }: IconProps) => (
-  <Icon w={6} h={6} color={color} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>
+export const HeartIcon = ({ color, filled = false, w = 6, h = 6 }: IconProps) => (
+  <Icon w={w} h={h} color={color} xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>
     <path
       fill={filled ? 'currentColor' : 'none'}
       stroke='currentColor'

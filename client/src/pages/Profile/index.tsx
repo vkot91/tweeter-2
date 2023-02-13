@@ -3,7 +3,7 @@ import { ProfileBox } from 'components/Profile';
 import { ErrorBoundary } from 'components/ErrorBoundary';
 import { CircleLoader } from 'components/Loader/Circle';
 import { useAuth } from 'context/authed-user-context';
-import { ActionType, Post, User, useUserQuery } from 'generated/graphql';
+import { GetPostsActionType, Post, User, useUserQuery } from 'generated/graphql';
 import { useGetPosts } from 'hooks/use-get-posts';
 import { useParams } from 'react-router-dom';
 import { Intro } from 'components/Boxes/Intro';
@@ -35,7 +35,7 @@ export const ProfilePage = () => {
     newPostsLoading,
   } = useGetPosts({
     ownerId: user?.id,
-    action: ActionType.Owner,
+    action: GetPostsActionType.Owner,
     initialPage: 1,
   });
 
@@ -76,7 +76,7 @@ export const ProfilePage = () => {
             </GridItem>
           </Show>
           <GridItem area='posts' w='full'>
-            {isPageOwner && <PostForm mb={10} ownerId={authedUser!.id} action={ActionType.Owner} />}
+            {isPageOwner && <PostForm mb={10} ownerId={authedUser!.id} action={GetPostsActionType.Owner} />}
             <ErrorBoundary isError={!!postsError} message={postsError?.message}>
               <PostsList isPageOwner={isPageOwner} loading={postsLoading} posts={posts as Post[]} />
             </ErrorBoundary>

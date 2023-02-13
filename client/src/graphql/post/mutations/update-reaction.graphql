@@ -1,0 +1,3 @@
+mutation UpdateReaction($updateReactionInput: UpdateReactionInput!) {
+  updateReaction(updateReactionInput: $updateReactionInput)
+}
