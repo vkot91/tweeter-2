@@ -1,28 +1,31 @@
-import { PrismaModule } from './prisma/prisma.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GqlContextType, GraphQLModule } from '@nestjs/graphql';
-import { ApolloServerPluginLandingPageLocalDefault } from 'apollo-server-core';
-import { join } from 'path';
+import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import * as path from 'path';
+import { ConfigModule } from '@nestjs/config';
+
+import { PubSubModule } from 'pub-sub/pub-sub.module';
+import { CommentModule } from 'comment/comment.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { FilesModule } from 'files/files.module';
+import { FriendsModule } from './friends/friends.module';
 import { UserModule } from './user/user.module';
-import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { PostModule } from './post/post.module';
-import { CommentModule } from 'comment/comment.module';
+import { ChatModule } from './chat/chat.module';
+import { EmailModule } from './email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import * as path from 'path';
-import { FilesModule } from 'files/files.module';
-import { ConfigModule } from '@nestjs/config';
-import { FriendsModule } from './friends/friends.module';
+import { dateScalar } from 'date/date.resolver';
+import { NotificationModule } from './notification/notification.module';
 
-import { PubSubModule } from './pub-sub/pub-sub.module';
-import { GraphQLError, GraphQLFormattedError } from 'graphql';
 export interface GqlContext {
   req: Request;
   res: Response;
   payload?: GqlContextType;
   connection: any;
 }
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,8 +36,9 @@ export interface GqlContext {
       playground: true,
       typePaths: ['./**/*.graphql'],
       definitions: {
-        path: join(process.cwd(), 'src/types/graphql.ts'),
+        path: path.join(process.cwd(), 'src/types/graphql.ts'),
         outputAs: 'class',
+        emitTypenameField: true,
       },
       formatError: (error: GraphQLError) => {
         const graphQLFormattedError: GraphQLFormattedError = {
@@ -72,11 +76,14 @@ export interface GqlContext {
 
         return { req: context?.req };
       },
+      resolvers: {
+        Date: dateScalar,
+      },
     }),
-
     ServeStaticModule.forRoot({
       rootPath: path.resolve(__dirname, 'static'),
     }),
+    PubSubModule,
     PrismaModule,
     EmailModule,
     UserModule,
@@ -85,8 +92,8 @@ export interface GqlContext {
     CommentModule,
     FilesModule,
     FriendsModule,
-    PubSubModule,
+    NotificationModule,
+    ChatModule,
   ],
-  controllers: [],
 })
 export class AppModule {}

@@ -1,0 +1,17 @@
+union NotificationNode = Like | Share | Friendship | Comment
+
+enum NotificationType {
+  Like
+  Share
+  Comment
+  Friendship
+}
+
+type Notification {
+  type: NotificationType
+  nodes: [NotificationNode]
+}
+
+type Query {
+  notifications: [Notification]!
+}

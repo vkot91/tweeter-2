@@ -1,16 +1,23 @@
-import { AuthGuard } from '@nestjs/passport';
-import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import { ReactionEntities, UpdateReactionInput } from './../types/graphql';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { FilesService } from 'files/files.service';
 import { PrismaService } from 'prisma/prisma.service';
 
 import {
-  ActionType,
+  GetPostsActionType,
   CreatePostInput,
   PaginationPostsInput,
+  PostMutationType,
   UpdatePostInput,
 } from 'types/graphql';
 import { UserService } from 'user/user.service';
+import { PubSubService } from 'pub-sub/pub-sub.service';
+import { SUBSCRIPTION_EVENTS } from 'pub-sub/pub-sub.constants';
 
 @Injectable()
 export class PostService {
@@ -18,6 +25,7 @@ export class PostService {
     private prisma: PrismaService,
     private filesService: FilesService,
     private usersService: UserService,
+    private readonly pubSubService: PubSubService,
   ) {}
 
   async createPost(createPostInput: CreatePostInput, ownerId: number) {
@@ -39,10 +47,28 @@ export class PostService {
 
   async createLike(postId: number, ownerId: number) {
     await this.getPostById(postId);
-    const like = this.prisma.like.create({
+    const like = await this.prisma.like.create({
       data: {
         postId,
         ownerId,
+      },
+      include: {
+        owner: true,
+        post: {
+          include: {
+            owner: true,
+          },
+        },
+      },
+    });
+
+    this.pubSubService.publish<'postMutated'>(SUBSCRIPTION_EVENTS.postMutated, {
+      postMutated: {
+        mutation: PostMutationType.LIKE_CREATED,
+        node: {
+          ...like,
+          __typename: 'Like',
+        },
       },
     });
     return like;
@@ -50,12 +76,30 @@ export class PostService {
 
   async createShare(postId: number, ownerId: number) {
     await this.getPostById(postId);
-    const share = this.prisma.share.create({
+    const share = await this.prisma.share.create({
       data: {
         postId,
         ownerId,
       },
+      include: {
+        owner: true,
+        post: {
+          include: {
+            owner: true,
+          },
+        },
+      },
     });
+    this.pubSubService.publish<'postMutated'>(SUBSCRIPTION_EVENTS.postMutated, {
+      postMutated: {
+        mutation: PostMutationType.SHARE_CREATED,
+        node: {
+          ...share,
+          __typename: 'Share',
+        },
+      },
+    });
+
     return share;
   }
 
@@ -64,7 +108,7 @@ export class PostService {
       activePage,
       take,
       ownerId,
-      action = ActionType.friends,
+      action = GetPostsActionType.friends,
     } = paginationPostsInput;
 
     const user = await this.usersService.getUserFriends(ownerId);
@@ -90,7 +134,7 @@ export class PostService {
       where: {},
     };
 
-    if (action === ActionType.owner) {
+    if (action === GetPostsActionType.owner) {
       filter.where = {
         OR: [
           {
@@ -106,7 +150,7 @@ export class PostService {
         ],
       };
     }
-    if (action === ActionType.friends) {
+    if (action === GetPostsActionType.friends) {
       filter.where = {
         ownerId: {
           in: [...userFriendsIdsList, ownerId],
@@ -117,11 +161,22 @@ export class PostService {
     const posts = await this.prisma.post.findMany({
       include: {
         owner: true,
-        likes: true,
-        shares: true,
+        likes: {
+          include: {
+            owner: true,
+            post: true,
+          },
+        },
+        shares: {
+          include: {
+            owner: true,
+            post: true,
+          },
+        },
         comments: {
           include: {
             owner: true,
+            post: true,
           },
           orderBy: {
             updatedAt: 'desc',
@@ -134,49 +189,6 @@ export class PostService {
       orderBy: {
         updatedAt: 'desc',
       },
-      // include: {
-      //   author: {
-      //     include: {
-      //       ...userFollowsRelation,
-      //     },
-      //   },
-      //   likes: {
-      //     include: {
-      //       user: {
-      //         include: {
-      //           ...userFollowsRelation,
-      //         },
-      //       },
-      //     },
-      //   },
-      //   comments: {
-      //     include: {
-      //       user: {
-      //         include: {
-      //           ...userFollowsRelation,
-      //         },
-      //       },
-      //     },
-      //   },
-      //   shares: {
-      //     include: {
-      //       user: {
-      //         include: {
-      //           ...userFollowsRelation,
-      //         },
-      //       },
-      //     },
-      //   },
-      //   bookmarks: {
-      //     include: {
-      //       user: {
-      //         include: {
-      //           ...userFollowsRelation,
-      //         },
-      //       },
-      //     },
-      //   },
-      // },
     });
     const totalCount = await this.prisma.post.count({
       where: filter.where,
@@ -254,6 +266,7 @@ export class PostService {
       });
       return true;
     } catch (error) {
+      console.log(error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
           throw new NotFoundException('Post with this id does not exists');
@@ -264,9 +277,31 @@ export class PostService {
 
   async removeLike(id: number) {
     try {
-      await this.prisma.like.delete({
+      const like = await this.prisma.like.delete({
         where: { id },
+        include: {
+          owner: true,
+          post: {
+            include: {
+              owner: true,
+            },
+          },
+        },
       });
+
+      this.pubSubService.publish<'postMutated'>(
+        SUBSCRIPTION_EVENTS.postMutated,
+        {
+          postMutated: {
+            mutation: PostMutationType.LIKE_DELETED,
+            node: {
+              ...like,
+              __typename: 'Like',
+            },
+          },
+        },
+      );
+
       return true;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -279,9 +314,30 @@ export class PostService {
 
   async removeShare(id: number) {
     try {
-      await this.prisma.share.delete({
+      const share = await this.prisma.share.delete({
         where: { id },
+        include: {
+          owner: true,
+          post: {
+            include: {
+              owner: true,
+            },
+          },
+        },
       });
+
+      this.pubSubService.publish<'postMutated'>(
+        SUBSCRIPTION_EVENTS.postMutated,
+        {
+          postMutated: {
+            mutation: PostMutationType.SHARE_DELETED,
+            node: {
+              ...share,
+              __typename: 'Share',
+            },
+          },
+        },
+      );
       return true;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -290,6 +346,51 @@ export class PostService {
         }
       }
     }
+  }
+
+  async updateReactionStatus(updateReactionInput: UpdateReactionInput) {
+    const { type, id, checked } = updateReactionInput;
+    try {
+      if (type === ReactionEntities.Like) {
+        await this.prisma.like.update({
+          where: {
+            id,
+          },
+          data: {
+            checked,
+          },
+        });
+        return true;
+      }
+      if (type === ReactionEntities.Share) {
+        await this.prisma.share.update({
+          where: {
+            id,
+          },
+          data: {
+            checked,
+          },
+        });
+      }
+      if (type === ReactionEntities.Comment) {
+        await this.prisma.comment.update({
+          where: {
+            id,
+          },
+          data: {
+            checked,
+          },
+        });
+      }
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new ConflictException();
+        }
+      }
+    }
+
+    return true;
   }
 
   private async getPostById(id: number) {

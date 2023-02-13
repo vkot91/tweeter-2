@@ -1,8 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Friends, Prisma, User as PrismaUser } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
+import { SUBSCRIPTION_EVENTS } from 'pub-sub/pub-sub.constants';
+import { PubSubService } from 'pub-sub/pub-sub.service';
 import {
   CreateFriendshipInput,
+  FriendshipMutationType,
   Status,
   UpdateStatusInput,
   User,
@@ -10,7 +13,10 @@ import {
 
 @Injectable()
 export class FriendsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly pubSubService: PubSubService,
+  ) {}
 
   async getFriends(userId: number) {
     const friendsData = await this.prisma.friends.findMany({
@@ -43,16 +49,31 @@ export class FriendsService {
         friend: true,
       },
     });
-    return this.transformFriends([friendship], mainUser.id)[0];
+
+    const transformed = this.transformFriends([friendship], mainUser.id)[0];
+
+    this.pubSubService.publish<'friendshipMutated'>(
+      SUBSCRIPTION_EVENTS.friendshipMutated,
+      {
+        friendshipMutated: {
+          node: {
+            ...transformed,
+            status: transformed.status as Status,
+          },
+          mutation: FriendshipMutationType.CREATED,
+        },
+      },
+    );
+    return transformed;
   }
 
-  async updateStatus(updateStatusInput: UpdateStatusInput) {
+  async updateStatus(updateStatusInput: UpdateStatusInput, user: User) {
     const { id, status } = updateStatusInput;
     const friendship = await this.prisma.friends.findUnique({
       where: { id },
     });
     try {
-      await this.prisma.friends.update({
+      const updatedFriendship = await this.prisma.friends.update({
         where: { id },
         data: {
           status: friendship.attemptsCount >= 5 ? Status.BLOCKED : status,
@@ -71,7 +92,30 @@ export class FriendsService {
             }
           })(),
         },
+        include: {
+          user: true,
+          friend: true,
+        },
       });
+
+      const transformed = this.transformFriends(
+        [updatedFriendship],
+        user.id,
+      )[0];
+
+      this.pubSubService.publish<'friendshipMutated'>(
+        SUBSCRIPTION_EVENTS.friendshipMutated,
+        {
+          friendshipMutated: {
+            node: {
+              ...transformed,
+              status: transformed.status as Status,
+            },
+            mutation: FriendshipMutationType.UPDATED,
+          },
+        },
+      );
+
       return true;
     } catch (error) {
       console.error(error);
@@ -79,7 +123,7 @@ export class FriendsService {
     }
   }
 
-  async updateCreator(id: number) {
+  async updateCreator(id: number, mainUser: User) {
     try {
       const friendship = await this.prisma.friends.findUnique({
         where: { id },
@@ -102,6 +146,26 @@ export class FriendsService {
           user: true,
         },
       });
+
+      const transformed = this.transformFriends(
+        [updatedFriendship],
+        mainUser.id,
+      )[0];
+
+      this.pubSubService.publish<'friendshipMutated'>(
+        SUBSCRIPTION_EVENTS.friendshipMutated,
+        {
+          friendshipMutated: {
+            node: {
+              ...transformed,
+              status: transformed.status as Status,
+              requestCreator: true,
+            },
+            mutation: FriendshipMutationType.CREATED,
+          },
+        },
+      );
+
       return updatedFriendship;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -137,7 +201,22 @@ export class FriendsService {
           friend: true,
         },
       });
-      return this.transformFriends([friendship], user.id)[0];
+
+      const transformed = this.transformFriends([friendship], user.id)[0];
+
+      this.pubSubService.publish<'friendshipMutated'>(
+        SUBSCRIPTION_EVENTS.friendshipMutated,
+        {
+          friendshipMutated: {
+            node: {
+              ...transformed,
+              status: transformed.status as Status,
+            },
+            mutation: FriendshipMutationType.DELETED,
+          },
+        },
+      );
+      return transformed;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -147,19 +226,21 @@ export class FriendsService {
     }
   }
 
-  private transformFriends = (
+  transformFriends(
     data: (Friends & {
       user: PrismaUser;
       friend: PrismaUser;
     })[],
     userId: number,
-  ) => {
+  ) {
     return data.map((item) => {
       if (item.user_id === userId) {
-        const { user, user_id, ...restFriendship } = item;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { user, user_id: __, ...restFriendship } = item;
         return {
           ...restFriendship,
           requestCreator: true,
+          requestCreatorInfo: user,
         };
       }
       if (item.friend_id === userId) {
@@ -169,8 +250,9 @@ export class FriendsService {
           friend_id: user_id,
           friend: user,
           requestCreator: false,
+          requestCreatorInfo: user,
         };
       }
     });
-  };
+  }
 }

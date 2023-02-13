@@ -1,17 +1,19 @@
-import { GetUser } from 'auth/utils/get-user.decorator';
 import { PrismaService } from 'prisma/prisma.service';
 import {
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { GetUserInput, Status, UpdateUserInput, User } from 'types/graphql';
+import { GetUserInput, Status, UpdateUserInput } from 'types/graphql';
 import { FilesService } from 'files/files.service';
 import { Prisma } from '@prisma/client';
+import { PubSubService } from 'pub-sub/pub-sub.service';
+import { SUBSCRIPTION_EVENTS } from 'pub-sub/pub-sub.constants';
 
 @Injectable()
 export class UserService {
   constructor(
+    private readonly pubSubService: PubSubService,
     private prisma: PrismaService,
     private filesService: FilesService,
   ) {}
@@ -71,9 +73,17 @@ export class UserService {
         data,
       });
 
+      this.pubSubService.publish<'lastSeenUpdated'>(
+        SUBSCRIPTION_EVENTS.lastSeenUpdated,
+        {
+          lastSeenUpdated: {
+            user: updatedUser,
+          },
+        },
+      );
+
       return updatedUser;
     } catch (e) {
-      console.log(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
           throw new ConflictException(

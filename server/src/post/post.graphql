@@ -1,33 +1,40 @@
 scalar Upload
 
-enum ActionType {
+enum GetPostsActionType {
   friends
   all
   owner
 }
 
+enum ReactionEntities {
+  Like
+  Share
+  Comment
+}
+
 type Like {
   id: Int!
-  createdAt: String!
-  updatedAt: String
+  updatedAt: Date!
   owner: User!
   ownerId: Int!
+  post: Post!
+  checked: Boolean!
 }
 
 type Share {
   id: Int!
-  createdAt: String!
-  updatedAt: String
+  updatedAt: Date!
   owner: User!
   ownerId: Int!
+  post: Post!
+  checked: Boolean!
 }
 
 type Post {
   id: Int!
   description: String!
   image: String
-  createdAt: String!
-  updatedAt: String
+  updatedAt: Date!
   owner: User!
   likes: [Like!]
   shares: [Share!]
@@ -39,6 +46,12 @@ input CreatePostInput {
   file: Upload
 }
 
+input UpdateReactionInput {
+  id: Int!
+  type: ReactionEntities!
+  checked: Boolean!
+}
+
 input UpdatePostInput {
   id: Int!
   description: String
@@ -46,7 +59,7 @@ input UpdatePostInput {
 }
 
 input PaginationPostsInput {
-  action: ActionType
+  action: GetPostsActionType
   ownerId: Int!
   take: Int = 3
   activePage: Int = 1
@@ -66,9 +79,30 @@ type Query {
 type Mutation {
   createPost(createPostInput: CreatePostInput!): Post!
   updatePost(updatePostInput: UpdatePostInput!): Post!
+  updateReaction(updateReactionInput: UpdateReactionInput!): Boolean!
   removePost(id: Int!): Boolean!
   createLike(postId: Int!): Like!
   createShare(postId: Int!): Share!
   removeLike(id: Int!): Boolean!
   removeShare(id: Int!): Boolean!
+}
+
+enum PostMutationType {
+  LIKE_CREATED
+  LIKE_DELETED
+  SHARE_CREATED
+  SHARE_DELETED
+  COMMENT_CREATED
+  COMMENT_DELETED
+}
+
+union PostMutatedNode = Like | Share | Comment
+
+type PostMutatedPayload {
+  mutation: PostMutationType!
+  node: PostMutatedNode!
+}
+
+type Subscription {
+  postMutated(userId: Int!): PostMutatedPayload!
 }

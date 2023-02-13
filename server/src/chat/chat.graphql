@@ -1,0 +1,42 @@
+type Room {
+  id: Int!
+  participants: [User]!
+  messages: [Message]!
+  updatedAt: Date!
+}
+
+type Message {
+  id: Int!
+  owner: User!
+  ownerId: Int!
+  updatedAt: Date!
+  text: String!
+}
+
+input CreateRoomInput {
+  participantId: Int!
+}
+
+input CreateMessageInput {
+  text: String!
+  roomId: Int!
+}
+
+input UpdateMessageInput {
+  id: Int!
+}
+
+type Query {
+  rooms: [Room]!
+  messages: [Message]!
+  message(id: Int!): Message
+  room(participantId: Int!): Room
+}
+
+type Mutation {
+  createMessage(createMessageInput: CreateMessageInput!): Message!
+  createRoom(createRoomInput: CreateRoomInput!): Room!
+  updateMessage(updateMessageInput: UpdateMessageInput!): Message!
+  removeMessage(id: Int!): Boolean!
+  removeRoom(id: Int!): Boolean!
+}

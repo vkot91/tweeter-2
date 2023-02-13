@@ -5,7 +5,7 @@ enum Status {
   BLOCKED
 }
 
-enum MutationType {
+enum FriendshipMutationType {
   CREATED
   UPDATED
   DELETED
@@ -16,10 +16,10 @@ type Friendship {
   friend_id: Int!
   friend: User!
   status: Status!
-  createdAt: String!
-  updatedAt: String!
+  updatedAt: Date!
   attemptsCount: Int!
   requestCreator: Boolean!
+  requestCreatorInfo: User
 }
 
 input CreateFriendshipInput {
@@ -53,6 +53,6 @@ type Subscription {
 }
 
 type FriendshipMutatedPayload {
-  mutation: MutationType!
+  mutation: FriendshipMutationType!
   node: Friendship!
 }

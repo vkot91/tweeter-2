@@ -1,5 +1,7 @@
 scalar Upload
 
+scalar Date
+
 type User {
   id: Int!
   email: String!
@@ -14,7 +16,7 @@ type User {
   isEmailConfirmed: Boolean
   posts: [Post!]
   friends: [Friendship!]
-  lastSeen: String!
+  lastSeen: Date!
 }
 
 input CreateUserInput {
@@ -36,7 +38,7 @@ input UpdateUserInput {
   avatar: Upload
   phone: String
   password: String
-  lastSeen: String
+  lastSeen: Date
 }
 
 input GetUserInput {
@@ -55,10 +57,10 @@ type Mutation {
   removeUser(id: Int!): User
 }
 
-type Subscription{
+type Subscription {
   lastSeenUpdated(userId: Int!): Payload
 }
 
-type Payload{
+type Payload {
   user: User
-} 
+}

@@ -1,17 +1,17 @@
 type Comment {
   id: Int!
   text: String!
-  createdAt: String!
-  updatedAt: String
+  updatedAt: Date!
   owner: User!
   ownerId: Int!
+  post: Post!
+  checked: Boolean!
 }
 
 input CreateCommentInput {
   postId: Int!
   text: String!
 }
-
 
 type Mutation {
   createComment(createCommentInput: CreateCommentInput!): Comment!
